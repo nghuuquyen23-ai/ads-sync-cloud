@@ -1,0 +1,51 @@
+name: Tu Dong Dong Bo Ads & Adjust Vao Google Sheets
+
+on:
+  schedule:
+    # 1. 12 khung giờ chẵn (+5 phút): 00:05, 02:05, 04:05, 06:05, 08:05, 10:05, 12:05, 14:05, 16:05, 18:05, 20:05, 22:05 VN
+    - cron: '5 1,3,5,7,9,11,13,15,17,19,21,23 * * *'
+    # 2. Các khung giờ bổ sung (+5 phút) theo giờ Việt Nam (UTC+7, khung 16:05 đã nằm trong khung chẵn):
+    - cron: '35 0 * * *'   # 07:35 VN (07:30 + 5p)
+    - cron: '5 2 * * *'    # 09:05 VN (09:00 + 5p)
+    - cron: '35 4 * * *'   # 11:35 VN (11:30 + 5p)
+    - cron: '35 6 * * *'   # 13:35 VN (13:30 + 5p)
+    - cron: '45 10 * * *'  # 17:45 VN (17:40 + 5p)
+    - cron: '5 14 * * *'   # 21:05 VN (21:00 + 5p)
+    - cron: '25 16 * * *'  # 23:25 VN (23:20 + 5p)
+  workflow_dispatch: {}
+
+jobs:
+  sync-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Thiet lap Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Chay dong bo bao cao Ads & Adjust (Meta)
+        env:
+          META_TOKEN: ${{ secrets.META_TOKEN }}
+          META_TOKEN_AG: ${{ secrets.META_TOKEN_AG }}
+          META_TOKEN_IH: ${{ secrets.META_TOKEN_IH }}
+          META_TOKEN_BIGTHINK02: ${{ secrets.META_TOKEN_BIGTHINK02 }}
+          ADJUST_TOKEN: ${{ secrets.ADJUST_TOKEN }}
+          PRIMARY_WEBHOOK_URL: ${{ secrets.PRIMARY_WEBHOOK_URL }}
+        run: |
+          python3 sync_ads_to_sheet.py
+
+      - name: Chay dong bo bao cao Google Ads
+        env:
+          GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+          GOOGLE_ADS_CLIENT_ID: ${{ secrets.GOOGLE_ADS_CLIENT_ID }}
+          GOOGLE_ADS_CLIENT_SECRET: ${{ secrets.GOOGLE_ADS_CLIENT_SECRET }}
+          GOOGLE_ADS_REFRESH_TOKEN: ${{ secrets.GOOGLE_ADS_REFRESH_TOKEN }}
+          GOOGLE_ADS_LOGIN_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_LOGIN_CUSTOMER_ID }}
+          GOOGLE_ADS_WEBHOOK_URL: ${{ secrets.GOOGLE_ADS_WEBHOOK_URL }}
+          PRIMARY_WEBHOOK_URL: ${{ secrets.PRIMARY_WEBHOOK_URL }}
+          ADJUST_TOKEN: ${{ secrets.ADJUST_TOKEN }}
+        run: |
+          python3 sync_google_ads.py
