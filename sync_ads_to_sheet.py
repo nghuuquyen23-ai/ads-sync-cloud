@@ -24,6 +24,7 @@ from app_report_builder import (
     save_spend_cache,
     META_SPEND_FILE,
     get_app_email,
+    get_app_emails,
     fetch_validate_from_sheet,
     build_permissions_table,
     extract_app_code
@@ -155,6 +156,9 @@ def extract_product_code(name):
     cleaned = str(name).strip()
     if cleaned.upper().startswith('INVOICE_'):
         cleaned = cleaned[8:].strip()
+    code = extract_app_code(cleaned)
+    if code and code != 'UNKNOWN':
+        return code
     for sep in ['_', '-', ' ']:
         if sep in cleaned:
             cleaned = cleaned.split(sep)[0].strip()
@@ -416,18 +420,16 @@ def fetch_meta_country_breakdowns(active_accounts, oldest_date, newest_date, acc
 
     for acc, app_id, data in acc_country_res:
         bms = account_to_bms.get(acc['id'], [])
-        acc_name = acc.get('name', '')
-        sub_email = get_app_email(app_id, {}, account_name=acc_name) if str(app_id).upper().strip() == 'AB156' else ''
         for item in data:
             day = item['date_start']
             country = str(item.get('country', '')).upper().strip()
-            gkey = f"{app_id}__{country}__{sub_email}" if sub_email else f"{app_id}__{country}"
+            gkey = f"{app_id}__{country}"
             spend = float(item.get('spend', 0))
             installs = extract_installs(item.get('actions', []))
 
             # Tổng hợp toàn bộ về map chung
             if gkey not in total_app_country_map:
-                total_app_country_map[gkey] = {'app_id': app_id, 'country': country, 'email': sub_email, 'cost': {}, 'installs': {}}
+                total_app_country_map[gkey] = {'app_id': app_id, 'country': country, 'cost': {}, 'installs': {}}
             total_app_country_map[gkey]['cost'][day] = total_app_country_map[gkey]['cost'].get(day, 0.0) + spend
             total_app_country_map[gkey]['installs'][day] = total_app_country_map[gkey]['installs'].get(day, 0) + installs
 
@@ -435,7 +437,7 @@ def fetch_meta_country_breakdowns(active_accounts, oldest_date, newest_date, acc
                 if bm not in app_country_map_by_bm:
                     app_country_map_by_bm[bm] = {}
                 if gkey not in app_country_map_by_bm[bm]:
-                    app_country_map_by_bm[bm][gkey] = {'app_id': app_id, 'country': country, 'email': sub_email, 'cost': {}, 'installs': {}}
+                    app_country_map_by_bm[bm][gkey] = {'app_id': app_id, 'country': country, 'cost': {}, 'installs': {}}
 
                 app_country_map_by_bm[bm][gkey]['cost'][day] = app_country_map_by_bm[bm][gkey]['cost'].get(day, 0.0) + spend
                 app_country_map_by_bm[bm][gkey]['installs'][day] = app_country_map_by_bm[bm][gkey]['installs'].get(day, 0) + installs
@@ -488,6 +490,31 @@ def fetch_meta_country_breakdowns(active_accounts, oldest_date, newest_date, acc
 
             camp_country_map[ckey]['cost'][day] = camp_country_map[ckey]['cost'].get(day, 0.0) + float(item.get('spend', 0))
             camp_country_map[ckey]['installs'][day] = camp_country_map[ckey]['installs'].get(day, 0) + installs
+
+    # Đối soát chéo từ camp_country_map sang total_app_country_map để đảm bảo 100% không bao giờ sót Mã SP ở Total Country
+    camp_app_totals = {}
+    for ckey, m in camp_country_map.items():
+        sp_id = m.get('app_id')
+        cc = m.get('country')
+        if not sp_id or not cc:
+            continue
+        gk = f"{sp_id}__{cc}"
+        if gk not in camp_app_totals:
+            camp_app_totals[gk] = {'app_id': sp_id, 'country': cc, 'cost': {}, 'installs': {}}
+        for d, v in m.get('cost', {}).items():
+            camp_app_totals[gk]['cost'][d] = camp_app_totals[gk]['cost'].get(d, 0.0) + v
+        for d, v in m.get('installs', {}).items():
+            camp_app_totals[gk]['installs'][d] = camp_app_totals[gk]['installs'].get(d, 0) + v
+
+    for gk, ctot in camp_app_totals.items():
+        if gk not in total_app_country_map:
+            total_app_country_map[gk] = {'app_id': ctot['app_id'], 'country': ctot['country'], 'cost': {}, 'installs': {}}
+        for d, v in ctot['cost'].items():
+            if v > total_app_country_map[gk]['cost'].get(d, 0.0):
+                total_app_country_map[gk]['cost'][d] = v
+        for d, v in ctot['installs'].items():
+            if v > total_app_country_map[gk]['installs'].get(d, 0):
+                total_app_country_map[gk]['installs'][d] = v
 
     return app_country_map_by_bm, camp_country_map, total_app_country_map
 
@@ -576,11 +603,7 @@ def fetch_adjust_data(oldest_date, newest_date, camp_to_app, camp_to_bms, camp_m
         app_id = camp_to_app.get(cid)
         bms = camp_to_bms.get(cid, [])
         if app_id:
-            sub_email = ''
-            if str(app_id).upper().strip() == 'AB156':
-                acc_name = (camp_map or {}).get(cid, {}).get('account_name', '')
-                sub_email = get_app_email(app_id, {}, account_name=acc_name)
-            akey = f"{app_id}__{cc}__{sub_email}" if sub_email else f"{app_id}__{cc}"
+            akey = f"{app_id}__{cc}"
             if akey not in total_adj_by_app_country:
                 total_adj_by_app_country[akey] = {}
             total_adj_by_app_country[akey][day] = total_adj_by_app_country[akey].get(day, 0.0) + rev
@@ -637,17 +660,16 @@ def build_hourly_data(camp_map, adjust_by_camp, dates_info, existing_hourly_hist
                 h7 = hist.get('h6', 0.0)
 
             sp = c.get('app_id') or c.get('name')
-            email_field = get_app_email(sp, email_map, account_name=c.get('account_name', ''))
-
-            rows.append({
-                'row': [
-                    day_disp, c['app_id'], email_field, c['name'], c['insight'], cid, c['account_name'],
-                    c['status'], round(c['budget'], 2), round(cost, 2), round(current_roas, 4),
-                    round(h1, 4), round(h2, 4), round(h3, 4), round(h4, 4), round(h5, 4), round(h6, 4), round(h7, 4)
-                ],
-                'raw_time': dt['raw_time'],
-                'cost': cost
-            })
+            for email_field in get_app_emails(sp, email_map, account_name=c.get('account_name', '')):
+                rows.append({
+                    'row': [
+                        day_disp, c['app_id'], email_field, c['name'], c['insight'], cid, c['account_name'],
+                        c['status'], round(c['budget'], 2), round(cost, 2), round(current_roas, 4),
+                        round(h1, 4), round(h2, 4), round(h3, 4), round(h4, 4), round(h5, 4), round(h6, 4), round(h7, 4)
+                    ],
+                    'raw_time': dt['raw_time'],
+                    'cost': cost
+                })
 
     rows.sort(key=lambda r: (r['raw_time'], r['cost']), reverse=True)
     return [headers] + [r['row'] for r in rows]
@@ -688,17 +710,16 @@ def build_fb_campaign_data(camp_map, adjust_by_camp, dates_info, email_map=None)
             roas_d2 = (rev_d2 / cost_d2) if cost_d2 > 0 else 0.0
 
             sp = c.get('app_id') or c.get('name')
-            email_field = get_app_email(sp, email_map, account_name=c.get('account_name', ''))
-
-            rows.append({
-                'row': [
-                    day_disp, c['app_id'], email_field, c['name'], c['insight'], cid, c['account_name'],
-                    c['status'], round(c['budget'], 2), round(cost, 2), inst, round(cpi, 2),
-                    round(roas, 4), round(roas_d1, 4), round(roas_d2, 4), round(rev, 2), now_str
-                ],
-                'raw_time': dt['raw_time'],
-                'cost': cost
-            })
+            for email_field in get_app_emails(sp, email_map, account_name=c.get('account_name', '')):
+                rows.append({
+                    'row': [
+                        day_disp, c['app_id'], email_field, c['name'], c['insight'], cid, c['account_name'],
+                        c['status'], round(c['budget'], 2), round(cost, 2), inst, round(cpi, 2),
+                        round(roas, 4), round(roas_d1, 4), round(roas_d2, 4), round(rev, 2), now_str
+                    ],
+                    'raw_time': dt['raw_time'],
+                    'cost': cost
+                })
 
     rows.sort(key=lambda r: (r['raw_time'], r['cost']), reverse=True)
     return [headers] + [r['row'] for r in rows]
@@ -739,17 +760,16 @@ def build_fb_country_data(camp_country_map, adjust_by_camp_country, dates_info, 
             roas_d2 = (rev_d2 / cost_d2) if cost_d2 > 0 else 0.0
 
             sp = m.get('app_id') or m.get('name')
-            email_field = get_app_email(sp, email_map, account_name=m.get('account_name', ''))
-
-            day_items.append({
-                'row': [
-                    day_disp, m.get('app_id', ''), email_field, m['name'], m['cid'], get_country_name(m['country']), m['account_name'], m['insight'],
-                    round(cost, 2), inst, round(cpi, 2), round(roas_d0, 4), round(roas_d1, 4), round(roas_d2, 4), round(ltv_d0, 2)
-                ],
-                'cost': cost,
-                'inst': inst,
-                'rev': rev
-            })
+            for email_field in get_app_emails(sp, email_map, account_name=m.get('account_name', '')):
+                day_items.append({
+                    'row': [
+                        day_disp, m.get('app_id', ''), email_field, m['name'], m['cid'], get_country_name(m['country']), m['account_name'], m['insight'],
+                        round(cost, 2), inst, round(cpi, 2), round(roas_d0, 4), round(roas_d1, 4), round(roas_d2, 4), round(ltv_d0, 2)
+                    ],
+                    'cost': cost,
+                    'inst': inst,
+                    'rev': rev
+                })
 
         # Sắp xếp ngày đó theo chi tiêu giảm dần (kéo full 100% không bỏ sót bất kỳ dòng nào)
         day_items.sort(key=lambda r: (r['cost'], r['inst'], r['rev']), reverse=True)
@@ -805,19 +825,18 @@ def build_total_country_data(app_country_map, adjust_by_app_country, dates_info,
             pct_ltv = ((ltv_d0 - ltv_d1) / ltv_d1) if ltv_d1 > 0 else 0.0
 
             sp = g.get('app_id')
-            email_field = g.get('email') or get_app_email(sp, email_map)
-
-            day_items.append({
-                'row': [
-                    day_disp, g['app_id'], email_field, get_country_name(g['country']), round(cost, 2), inst,
-                    round(cpi, 2), round(pct_cpi, 4), round(cpi_d1, 2), round(cpi_d2, 2),
-                    round(roas_d0, 4), round(roas_d1, 4), round(roas_d2, 4),
-                    round(ltv_d0, 2), round(ltv_d1, 2), round(ltv_d2, 2), round(pct_ltv, 4)
-                ],
-                'cost': cost,
-                'inst': inst,
-                'rev': rev
-            })
+            for email_field in get_app_emails(sp, email_map):
+                day_items.append({
+                    'row': [
+                        day_disp, g['app_id'], email_field, get_country_name(g['country']), round(cost, 2), inst,
+                        round(cpi, 2), round(pct_cpi, 4), round(cpi_d1, 2), round(cpi_d2, 2),
+                        round(roas_d0, 4), round(roas_d1, 4), round(roas_d2, 4),
+                        round(ltv_d0, 2), round(ltv_d1, 2), round(ltv_d2, 2), round(pct_ltv, 4)
+                    ],
+                    'cost': cost,
+                    'inst': inst,
+                    'rev': rev
+                })
 
         day_items.sort(key=lambda r: (r['cost'], r['inst'], r['rev']), reverse=True)
         all_rows.extend([it['row'] for it in day_items])
@@ -944,12 +963,12 @@ def build_account_status_data(accounts, account_to_bms, email_map=None, marketer
     for meta, daily_items, bms in results:
         name = meta.get('name', '')
         sp = extract_app_code(name)
-        email = get_app_email(sp, email_map, account_name=name)
+        owner_email = get_app_email(sp, email_map, account_name=name)
         marketer = mkt_map.get(sp, 'Admin')
         if sp == 'AB156':
-            if 'hannk@' in email:
+            if 'hannk@' in owner_email:
                 marketer = 'HanNK'
-            elif 'quyennh@' in email:
+            elif 'quyennh@' in owner_email:
                 marketer = 'QuyenNH'
             else:
                 marketer = 'QuynhNN'
@@ -994,35 +1013,36 @@ def build_account_status_data(accounts, account_to_bms, email_map=None, marketer
             spend_mtd += diff
             spend_60d += diff
 
-        # Hôm nay luôn luôn có mặt (kể cả chưa tiêu gì để xem trạng thái và budget còn lại)
-        all_rows.append({
-            'row': [
-                today_str, sp, email, marketer, bm_str, aid, name,
-                st_text, dis_text, round(today_spend, 2),
-                round(spend_mtd, 2), round(spend_60d, 2),
-                bal, limit if limit > 0 else 'Không giới hạn', remain,
-                curr, created, now_str
-            ],
-            'date': today_str,
-            'spend': today_spend,
-            'spend_60d': spend_60d
-        })
+        for email in get_app_emails(sp, email_map, account_name=name):
+            # Hôm nay luôn luôn có mặt (kể cả chưa tiêu gì để xem trạng thái và budget còn lại)
+            all_rows.append({
+                'row': [
+                    today_str, sp, email, marketer, bm_str, aid, name,
+                    st_text, dis_text, round(today_spend, 2),
+                    round(spend_mtd, 2), round(spend_60d, 2),
+                    bal, limit if limit > 0 else 'Không giới hạn', remain,
+                    curr, created, now_str
+                ],
+                'date': today_str,
+                'spend': today_spend,
+                'spend_60d': spend_60d
+            })
 
-        # Các ngày quá khứ có phát sinh chi phí
-        for day, spend in day_map.items():
-            if day != today_str and spend > 0:
-                all_rows.append({
-                    'row': [
-                        day, sp, email, marketer, bm_str, aid, name,
-                        st_text, dis_text, round(spend, 2),
-                        round(spend_mtd, 2), round(spend_60d, 2),
-                        bal, limit if limit > 0 else 'Không giới hạn', remain,
-                        curr, created, now_str
-                    ],
-                    'date': day,
-                    'spend': spend,
-                    'spend_60d': spend_60d
-                })
+            # Các ngày quá khứ có phát sinh chi phí
+            for day, spend in day_map.items():
+                if day != today_str and spend > 0:
+                    all_rows.append({
+                        'row': [
+                            day, sp, email, marketer, bm_str, aid, name,
+                            st_text, dis_text, round(spend, 2),
+                            round(spend_mtd, 2), round(spend_60d, 2),
+                            bal, limit if limit > 0 else 'Không giới hạn', remain,
+                            curr, created, now_str
+                        ],
+                        'date': day,
+                        'spend': spend,
+                        'spend_60d': spend_60d
+                    })
 
     all_rows.sort(key=lambda r: (r['date'], r['spend']), reverse=True)
     return [headers] + [r['row'] for r in all_rows]

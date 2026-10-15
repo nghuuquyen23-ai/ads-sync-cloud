@@ -371,6 +371,15 @@ def parse_validate_sheet(rows):
     return tracked_apps, marketer_map, user_app_names, admin_map, leader_map, employee_map, email_map
 
 
+SHARED_APP_EMAILS = {
+    "AB156": [
+        "quynhnn@unisoftstudio.com",
+        "hannk@unisoftstudio.com",
+        "quyennh@unisoftstudio.com",
+    ]
+}
+
+
 def get_app_email(sp_code, email_map=None, default_admin="ductq@unisoftstudio.com", account_name=""):
     """
     Trả về email được phân quyền xem cho mã sản phẩm sp_code.
@@ -401,6 +410,23 @@ def get_app_email(sp_code, email_map=None, default_admin="ductq@unisoftstudio.co
     if isinstance(res, str):
         res = res.replace("hannhk@", "hannk@")
     return res
+
+
+def get_app_emails(sp_code, email_map=None, default_admin="ductq@unisoftstudio.com", account_name=""):
+    """
+    Trả về danh sách tất cả các email được phân quyền xem cho mã sản phẩm sp_code.
+    Với các app chạy chung nhiều người (như AB156: quynhnn, hannk, quyennh),
+    trả về cả 3 email để khi nhân bản dòng vào bảng dữ liệu gốc (và bật Filter by email),
+    cả 3 người đều xem được TẤT CẢ các account của AB156 trên mọi bảng.
+    """
+    cand = extract_app_code(str(sp_code)) if sp_code else ""
+    if cand in SHARED_APP_EMAILS:
+        return list(SHARED_APP_EMAILS[cand])
+    if sp_code:
+        for k, emails in SHARED_APP_EMAILS.items():
+            if k in str(sp_code).upper():
+                return list(emails)
+    return [get_app_email(sp_code, email_map=email_map, default_admin=default_admin, account_name=account_name)]
 
 
 def fetch_validate_from_sheet(webhook_url):
@@ -801,36 +827,35 @@ def build_app_report_table(dates_info, adjust_data, known_apps_by_code, meta_spe
             pl2_pct = ""
             pl2_vnd = ""
 
-            email_field = get_app_email(sp_code, email_map)
+            for email_field in get_app_emails(sp_code, email_map):
+                row = [
+                    day_str,
+                    marketer,
+                    email_field,
+                    sp_code,
+                    app_name,
+                    roas_d0,
+                    tot_cost,
+                    inst,
+                    rev_cutoff_adjust,
+                    rev_cutoff_admob,
+                    pl2_admob,
+                    pl2_pct,
+                    cost_vnd,
+                    pl2_vnd,
+                    fb_cost,
+                    gg_cost,
+                    tt_cost,
+                    mt_cost,
+                    now_str
+                ]
 
-            row = [
-                day_str,
-                marketer,
-                email_field,
-                sp_code,
-                app_name,
-                roas_d0,
-                tot_cost,
-                inst,
-                rev_cutoff_adjust,
-                rev_cutoff_admob,
-                pl2_admob,
-                pl2_pct,
-                cost_vnd,
-                pl2_vnd,
-                fb_cost,
-                gg_cost,
-                tt_cost,
-                mt_cost,
-                now_str
-            ]
-
-            day_items.append({
-                "row": row,
-                "cost": tot_cost,
-                "rev": rev,
-                "inst": inst
-            })
+                day_items.append({
+                    "row": row,
+                    "cost": tot_cost,
+                    "rev": rev,
+                    "inst": inst
+                })
 
         # Sắp xếp các app trong ngày: App có chi phí cao nhất lên đầu, tiếp đến doanh thu và lượt install
         day_items.sort(key=lambda x: (x["cost"], x["rev"], x["inst"]), reverse=True)

@@ -27,6 +27,7 @@ from app_report_builder import (
     save_spend_cache,
     GOOGLE_SPEND_FILE,
     get_app_email,
+    get_app_emails,
     fetch_validate_from_sheet,
     build_permissions_table
 )
@@ -493,16 +494,15 @@ def build_google_campaign_table(camp_map, adjust_by_camp, dates_info, now_str, v
             roas_d1 = round(adj_rev_d1 / adj_cost_d1, 4) if adj_cost_d1 > 0 else 0.0
             roas_d2 = round(adj_rev_d2 / adj_cost_d2, 4) if adj_cost_d2 > 0 else 0.0
 
-            email_field = get_app_email(ma_sp, email_map)
-
-            rows.append({
-                "row": [
-                    day_disp, ma_sp, email_field, c_name, cid, round(cost, 2),
-                    installs, cpu, roas, roas_d1, roas_d2, now_str
-                ],
-                "raw_time": dt["raw_time"],
-                "cost": cost
-            })
+            for email_field in get_app_emails(ma_sp, email_map):
+                rows.append({
+                    "row": [
+                        day_disp, ma_sp, email_field, c_name, cid, round(cost, 2),
+                        installs, cpu, roas, roas_d1, roas_d2, now_str
+                    ],
+                    "raw_time": dt["raw_time"],
+                    "cost": cost
+                })
 
     rows.sort(key=lambda r: (r["raw_time"], r["cost"]), reverse=True)
     return [headers] + [r["row"] for r in rows]
@@ -546,16 +546,15 @@ def build_google_country_table(adjust_by_camp_country, dates_info, now_str, camp
             roas_d0 = round(rev / cost, 4) if cost > 0 else 0.0
             cpu = round(cost / installs, 2) if installs > 0 else ""
 
-            email_field = get_app_email(ma_sp, email_map)
-
-            rows.append({
-                "row": [
-                    ma_sp, email_field, day_disp, c_name, cid, country_name, acc_name,
-                    round(cost, 2), roas_d0, installs, cpu, now_str
-                ],
-                "raw_time": dt["raw_time"],
-                "cost": cost
-            })
+            for email_field in get_app_emails(ma_sp, email_map):
+                rows.append({
+                    "row": [
+                        ma_sp, email_field, day_disp, c_name, cid, country_name, acc_name,
+                        round(cost, 2), roas_d0, installs, cpu, now_str
+                    ],
+                    "raw_time": dt["raw_time"],
+                    "cost": cost
+                })
 
     rows.sort(key=lambda r: (r["raw_time"], r["cost"]), reverse=True)
     if len(rows) > 0:
@@ -612,16 +611,15 @@ def build_google_total_country_table(adjust_by_camp_country, dates_info, now_str
             cpu = round(cost / inst, 3) if inst > 0 else ""
             roas_d0 = round(rev / cost, 4) if cost > 0 else 0.0
 
-            email_field = get_app_email(app_id, email_map)
-
-            rows.append({
-                "row": [
-                    day_disp, app_id, app_id, email_field, country_name, round(cost, 2),
-                    inst, cpu, roas_d0, now_str
-                ],
-                "raw_time": dt["raw_time"],
-                "cost": cost
-            })
+            for email_field in get_app_emails(app_id, email_map):
+                rows.append({
+                    "row": [
+                        day_disp, app_id, app_id, email_field, country_name, round(cost, 2),
+                        inst, cpu, roas_d0, now_str
+                    ],
+                    "raw_time": dt["raw_time"],
+                    "cost": cost
+                })
 
     rows.sort(key=lambda r: (r["raw_time"], r["cost"]), reverse=True)
     return [headers] + [r["row"] for r in rows]
