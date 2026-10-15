@@ -1146,23 +1146,17 @@ def run_sync():
     print(f"   - PhanQuyen: {len(phan_quyen_table) - 1} dòng", flush=True)
     print(f"   - Tình trạng account: {len(account_status_table) - 1} dòng", flush=True)
 
-    payload_main = {
+    payload = {
         'hourly': hourly_table,
         'fbCampaign': fb_camp_table,
+        'fbCountry': fb_country_table,
         'totalCountry': total_country_table,
         'cutoff': app_table,
         'accountStatus': account_status_table,
         'phanQuyen': phan_quyen_table
     }
 
-    send_to_google_sheet(payload_main, PRIMARY_WEBHOOK_URL, "Sheet Chính (9 Bảng Nhẹ)")
-
-    if FB_COUNTRY_WEBHOOK_URL and FB_COUNTRY_WEBHOOK_URL != PRIMARY_WEBHOOK_URL:
-        payload_country = {
-            'fbCountry': fb_country_table,
-            'phanQuyen': phan_quyen_table
-        }
-        send_to_google_sheet(payload_country, FB_COUNTRY_WEBHOOK_URL, "Sheet Riêng FB Country (Báo cáo Ads - BM AG)")
+    send_to_google_sheet(payload, PRIMARY_WEBHOOK_URL, "Báo Cáo Tổng Hợp (Tất Cả BM)")
 
 if __name__ == '__main__':
     run_sync()
