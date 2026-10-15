@@ -41,8 +41,10 @@ CONFIG = {
 }
 
 # ==================== CẤU HÌNH BUSINESS MANAGERS (BM) ====================
-# Webhook của Sheet đang dùng duy nhất (tất cả BM gom hết về đây)
+# Webhook của Sheet chính (Hourly, FB Campaign, Total Country, CutOff, Tình trạng account, Google, PhanQuyen)
 PRIMARY_WEBHOOK_URL = (os.environ.get("PRIMARY_WEBHOOK_URL") or "").strip()
+# Webhook của Sheet riêng cho bảng nặng FB Country (~141,000 dòng) để không làm quá tải Blended Data trên Sheet chính
+FB_COUNTRY_WEBHOOK_URL = (os.environ.get("FB_COUNTRY_WEBHOOK_URL") or "https://script.google.com/macros/s/AKfycby75UnIdHKTuRb8E3rAMTLws-nU22eag0JD95roKQWPi6CEvgYMEHz03Am0NVsjx5sQbg/exec").strip()
 
 BM_CONFIGS = {
     "BM_IH": {
@@ -1144,17 +1146,24 @@ def run_sync():
     print(f"   - PhanQuyen: {len(phan_quyen_table) - 1} dòng", flush=True)
     print(f"   - Tình trạng account: {len(account_status_table) - 1} dòng", flush=True)
 
-    payload = {
+    payload_main = {
         'hourly': hourly_table,
         'fbCampaign': fb_camp_table,
-        'fbCountry': fb_country_table,
+        'fbCountry': [fb_country_table[0]] if fb_country_table else [],
         'totalCountry': total_country_table,
         'cutoff': app_table,
-        'phanQuyen': phan_quyen_table,
-        'accountStatus': account_status_table
+        'accountStatus': account_status_table,
+        'phanQuyen': phan_quyen_table
     }
 
-    send_to_google_sheet(payload, PRIMARY_WEBHOOK_URL, "Báo Cáo Tổng Hợp (Tất Cả BM)")
+    send_to_google_sheet(payload_main, PRIMARY_WEBHOOK_URL, "Sheet Chính (9 Bảng Nhẹ)")
+
+    if FB_COUNTRY_WEBHOOK_URL and FB_COUNTRY_WEBHOOK_URL != PRIMARY_WEBHOOK_URL:
+        payload_country = {
+            'fbCountry': fb_country_table,
+            'phanQuyen': phan_quyen_table
+        }
+        send_to_google_sheet(payload_country, FB_COUNTRY_WEBHOOK_URL, "Sheet Riêng FB Country (Báo cáo Ads - BM AG)")
 
 if __name__ == '__main__':
     run_sync()
