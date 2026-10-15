@@ -1149,7 +1149,6 @@ def run_sync():
     payload_main = {
         'hourly': hourly_table,
         'fbCampaign': fb_camp_table,
-        'fbCountry': [fb_country_table[0]] if fb_country_table else [],
         'totalCountry': total_country_table,
         'cutoff': app_table,
         'accountStatus': account_status_table,
