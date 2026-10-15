@@ -365,20 +365,30 @@ def parse_validate_sheet(rows):
                 single_email = ADMIN_EMAILS[0] if ADMIN_EMAILS else "ductq@unisoftstudio.com"
 
             single_email = single_email.strip().lower().replace("hannhk@", "hannk@")
-            email_map[sp] = single_email
+            if sp not in email_map:
+                email_map[sp] = single_email
 
     return tracked_apps, marketer_map, user_app_names, admin_map, leader_map, employee_map, email_map
 
 
-def get_app_email(sp_code, email_map=None, default_admin="ductq@unisoftstudio.com"):
+def get_app_email(sp_code, email_map=None, default_admin="ductq@unisoftstudio.com", account_name=""):
     """
     Trả về email được phân quyền xem cho mã sản phẩm sp_code.
     Tự động chuẩn hóa mã SP và đối chiếu với email_map từ sheet Validate.
-    Mỗi ô chỉ trả về duy nhất 1 email chuẩn để tính năng Filter by viewer email của Looker Studio hoạt động chính xác.
+    Hỗ trợ phân tách theo từng tài khoản quảng cáo (ví dụ AB156: TK 4, 11 -> hannk; TK 5, 10 -> quyennh; còn lại -> quynhnn).
     """
+    cand = extract_app_code(str(sp_code)) if sp_code else ""
+    if cand == "AB156" or (sp_code and "AB156" in str(sp_code).upper()):
+        if account_name:
+            acc_str = str(account_name).strip()
+            if re.search(r"(?:^|[\s_\-])0?(4|11)\s*$", acc_str):
+                return "hannk@unisoftstudio.com"
+            if re.search(r"(?:^|[\s_\-])0?(5|10)\s*$", acc_str):
+                return "quyennh@unisoftstudio.com"
+        return "quynhnn@unisoftstudio.com"
+
     res = default_admin
     if email_map and sp_code:
-        cand = extract_app_code(str(sp_code))
         if cand and cand in email_map:
             res = email_map[cand]
         else:

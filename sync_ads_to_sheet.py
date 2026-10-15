@@ -631,7 +631,7 @@ def build_hourly_data(camp_map, adjust_by_camp, dates_info, existing_hourly_hist
                 h7 = hist.get('h6', 0.0)
 
             sp = c.get('app_id') or c.get('name')
-            email_field = get_app_email(sp, email_map)
+            email_field = get_app_email(sp, email_map, account_name=c.get('account_name', ''))
 
             rows.append({
                 'row': [
@@ -682,7 +682,7 @@ def build_fb_campaign_data(camp_map, adjust_by_camp, dates_info, email_map=None)
             roas_d2 = (rev_d2 / cost_d2) if cost_d2 > 0 else 0.0
 
             sp = c.get('app_id') or c.get('name')
-            email_field = get_app_email(sp, email_map)
+            email_field = get_app_email(sp, email_map, account_name=c.get('account_name', ''))
 
             rows.append({
                 'row': [
@@ -733,7 +733,7 @@ def build_fb_country_data(camp_country_map, adjust_by_camp_country, dates_info, 
             roas_d2 = (rev_d2 / cost_d2) if cost_d2 > 0 else 0.0
 
             sp = m.get('app_id') or m.get('name')
-            email_field = get_app_email(sp, email_map)
+            email_field = get_app_email(sp, email_map, account_name=m.get('account_name', ''))
 
             day_items.append({
                 'row': [
@@ -938,8 +938,15 @@ def build_account_status_data(accounts, account_to_bms, email_map=None, marketer
     for meta, daily_items, bms in results:
         name = meta.get('name', '')
         sp = extract_app_code(name)
-        email = get_app_email(sp, email_map)
+        email = get_app_email(sp, email_map, account_name=name)
         marketer = mkt_map.get(sp, 'Admin')
+        if sp == 'AB156':
+            if 'hannk@' in email:
+                marketer = 'HanNK'
+            elif 'quyennh@' in email:
+                marketer = 'QuyenNH'
+            else:
+                marketer = 'QuynhNN'
         st_code = meta.get('account_status', 0)
         st_text = status_map.get(st_code, f'Trạng thái {st_code}')
         dis_code = meta.get('disable_reason', 0)
