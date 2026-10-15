@@ -416,16 +416,18 @@ def fetch_meta_country_breakdowns(active_accounts, oldest_date, newest_date, acc
 
     for acc, app_id, data in acc_country_res:
         bms = account_to_bms.get(acc['id'], [])
+        acc_name = acc.get('name', '')
+        sub_email = get_app_email(app_id, {}, account_name=acc_name) if str(app_id).upper().strip() == 'AB156' else ''
         for item in data:
             day = item['date_start']
             country = str(item.get('country', '')).upper().strip()
-            gkey = f"{app_id}__{country}"
+            gkey = f"{app_id}__{country}__{sub_email}" if sub_email else f"{app_id}__{country}"
             spend = float(item.get('spend', 0))
             installs = extract_installs(item.get('actions', []))
 
             # Tổng hợp toàn bộ về map chung
             if gkey not in total_app_country_map:
-                total_app_country_map[gkey] = {'app_id': app_id, 'country': country, 'cost': {}, 'installs': {}}
+                total_app_country_map[gkey] = {'app_id': app_id, 'country': country, 'email': sub_email, 'cost': {}, 'installs': {}}
             total_app_country_map[gkey]['cost'][day] = total_app_country_map[gkey]['cost'].get(day, 0.0) + spend
             total_app_country_map[gkey]['installs'][day] = total_app_country_map[gkey]['installs'].get(day, 0) + installs
 
@@ -433,7 +435,7 @@ def fetch_meta_country_breakdowns(active_accounts, oldest_date, newest_date, acc
                 if bm not in app_country_map_by_bm:
                     app_country_map_by_bm[bm] = {}
                 if gkey not in app_country_map_by_bm[bm]:
-                    app_country_map_by_bm[bm][gkey] = {'app_id': app_id, 'country': country, 'cost': {}, 'installs': {}}
+                    app_country_map_by_bm[bm][gkey] = {'app_id': app_id, 'country': country, 'email': sub_email, 'cost': {}, 'installs': {}}
 
                 app_country_map_by_bm[bm][gkey]['cost'][day] = app_country_map_by_bm[bm][gkey]['cost'].get(day, 0.0) + spend
                 app_country_map_by_bm[bm][gkey]['installs'][day] = app_country_map_by_bm[bm][gkey]['installs'].get(day, 0) + installs
@@ -490,7 +492,7 @@ def fetch_meta_country_breakdowns(active_accounts, oldest_date, newest_date, acc
     return app_country_map_by_bm, camp_country_map, total_app_country_map
 
 # ==================== 2. KÉO DỮ LIỆU TỪ ADJUST ====================
-def fetch_adjust_data(oldest_date, newest_date, camp_to_app, camp_to_bms):
+def fetch_adjust_data(oldest_date, newest_date, camp_to_app, camp_to_bms, camp_map=None):
     by_camp = {}
     by_camp_country = {}
     by_app_country_by_bm = {bm: {} for bm in BM_CONFIGS}
@@ -574,7 +576,11 @@ def fetch_adjust_data(oldest_date, newest_date, camp_to_app, camp_to_bms):
         app_id = camp_to_app.get(cid)
         bms = camp_to_bms.get(cid, [])
         if app_id:
-            akey = f"{app_id}__{cc}"
+            sub_email = ''
+            if str(app_id).upper().strip() == 'AB156':
+                acc_name = (camp_map or {}).get(cid, {}).get('account_name', '')
+                sub_email = get_app_email(app_id, {}, account_name=acc_name)
+            akey = f"{app_id}__{cc}__{sub_email}" if sub_email else f"{app_id}__{cc}"
             if akey not in total_adj_by_app_country:
                 total_adj_by_app_country[akey] = {}
             total_adj_by_app_country[akey][day] = total_adj_by_app_country[akey].get(day, 0.0) + rev
@@ -799,7 +805,7 @@ def build_total_country_data(app_country_map, adjust_by_app_country, dates_info,
             pct_ltv = ((ltv_d0 - ltv_d1) / ltv_d1) if ltv_d1 > 0 else 0.0
 
             sp = g.get('app_id')
-            email_field = get_app_email(sp, email_map)
+            email_field = g.get('email') or get_app_email(sp, email_map)
 
             day_items.append({
                 'row': [
@@ -1102,7 +1108,7 @@ def run_sync():
 
     # 3. Kéo Adjust CSV
     t3 = time.time()
-    adj_by_camp, adj_by_camp_country, adj_by_app_country_by_bm, total_adj_by_app_country = fetch_adjust_data(oldest_date, newest_date, camp_to_app, camp_to_bms)
+    adj_by_camp, adj_by_camp_country, adj_by_app_country_by_bm, total_adj_by_app_country = fetch_adjust_data(oldest_date, newest_date, camp_to_app, camp_to_bms, camp_map=camp_map)
     print(f"✅ Đã kéo Adjust CSV doanh thu & ROAS ({time.time() - t3:.2f}s)", flush=True)
 
     # 4. Kéo Meta Country Breakdown
