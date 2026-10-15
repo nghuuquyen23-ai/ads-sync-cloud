@@ -71,8 +71,6 @@ function doPost(e) {
     // 9. Cập nhật bảng PhanQuyen (Row-Level Security cho Looker Studio)
     if (data.phanQuyen && data.phanQuyen.length > 0) {
       writeSheetPhanQuyen(ss, 'PhanQuyen', data.phanQuyen);
-    } else {
-      syncPhanQuyenFromValidate(ss);
     }
 
     // 10. Cập nhật bảng Tình trạng account
@@ -521,18 +519,9 @@ function writeSheetApp(ss, sheetName, rows) {
 
 function writeSheetPhanQuyen(ss, sheetName, rows) {
   let sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
-  sheet.clearContents();
+  sheet.clear();
   if (!rows || rows.length === 0) return;
-
   sheet.getRange(1, 1, rows.length, rows[0].length).setValues(rows);
-  sheet.getRange(1, 1, 1, rows[0].length)
-    .setBackground('#1A73E8').setFontColor('#FFFFFF').setFontWeight('bold').setHorizontalAlignment('center');
-  sheet.setFrozenRows(1);
-
-  if (rows.length > 1) {
-    sheet.getRange(2, 1, rows.length - 1, 1).setHorizontalAlignment('center');
-    sheet.getRange(2, 2, rows.length - 1, 1).setHorizontalAlignment('left');
-  }
 }
 
 function writeSheetAccountStatus(ss, sheetName, rows) {
@@ -600,44 +589,10 @@ function resolveMarketerEmailJS(mktNameRaw, khoRaw) {
   return s + '@unisoftstudio.com';
 }
 
-function ensureValidateEmailFormulas(vSheet) {
-  try {
-    if (!vSheet) return;
-    const lastRow = vSheet.getLastRow();
-    if (lastRow < 2) return;
-    // Đặt ARRAYFORMULA tự động ở dòng 2 (E2, F2, G2) để khi đổi tên Marketer ở cột A thì cột Email bên phải đổi ngay lập tức
-    const numRows = lastRow - 1;
-    if (numRows > 1) {
-      vSheet.getRange(3, 5, numRows - 1, 3).clearContent();
-    }
-    vSheet.getRange('E2').setFormula('=ARRAYFORMULA(IF(B2:B="","","ductq@unisoftstudio.com"))');
-    vSheet.getRange('F2').setFormula('=ARRAYFORMULA(IF(B2:B="","","quyennh@unisoftstudio.com"))');
-    vSheet.getRange('G2').setFormula('=ARRAYFORMULA(IF(A2:A="","",LOWER(REGEXREPLACE(TRIM(A2:A),"\\s+",""))&IF((LOWER(TRIM(A2:A))="ductq")*(UPPER(TRIM(D2:D))="AA"),".f1","")&"@unisoftstudio.com"))');
-    SpreadsheetApp.flush();
-  } catch (err) {
-    Logger.log('⚠️ ensureValidateEmailFormulas error: ' + err.toString());
-  }
-}
-
-function onEdit(e) {
-  try {
-    if (!e || !e.range) return;
-    const sheet = e.range.getSheet();
-    const name = sheet.getName().toLowerCase();
-    if (name === 'validate') {
-      ensureValidateEmailFormulas(sheet);
-      syncPhanQuyenFromValidate(sheet.getParent());
-    }
-  } catch (err) {
-    Logger.log('⚠️ onEdit error: ' + err.toString());
-  }
-}
-
 function syncPhanQuyenFromValidate(ss) {
   try {
     const vSheet = ss.getSheetByName('Validate') || ss.getSheetByName('validate') || ss.getSheetByName('VALIDATE');
     if (!vSheet) return;
-    ensureValidateEmailFormulas(vSheet);
     const vData = vSheet.getDataRange().getValues();
     if (vData.length <= 1) return;
 
