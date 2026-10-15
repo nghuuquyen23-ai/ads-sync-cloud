@@ -1025,8 +1025,8 @@ def send_to_google_sheet(payload, webhook_url, bm_name):
         ('totalCountry', 'Total Country'),
         ('fbCountry', 'FB Country'),
         ('cutoff', 'CutOff'),
-        ('phanQuyen', 'PhanQuyen'),
-        ('accountStatus', 'Tình trạng account')
+        ('accountStatus', 'Tình trạng account'),
+        ('phanQuyen', 'PhanQuyen')
     ]
 
     for sheet_key, sheet_name in sheet_order:
