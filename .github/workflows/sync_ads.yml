@@ -31,6 +31,7 @@ jobs:
           META_TOKEN: ${{ secrets.META_TOKEN }}
           META_TOKEN_AG: ${{ secrets.META_TOKEN_AG }}
           META_TOKEN_IH: ${{ secrets.META_TOKEN_IH }}
+          META_TOKEN_ANTHUC: ${{ secrets.META_TOKEN_ANTHUC }}
           META_TOKEN_BIGTHINK02: ${{ secrets.META_TOKEN_BIGTHINK02 }}
           ADJUST_TOKEN: ${{ secrets.ADJUST_TOKEN }}
           PRIMARY_WEBHOOK_URL: ${{ secrets.PRIMARY_WEBHOOK_URL }}

@@ -55,11 +55,11 @@ BM_CONFIGS = {
         "token": os.environ.get("META_TOKEN_IH", ""),
         "enabled": True
     },
-    "BM_BIGTHINK02": {
-        "name": "Báo Cáo Ads - BIG THIBK 02",
-        "business_name": "BIG THIBK 02",
+    "BM_ANTHUC": {
+        "name": "Báo Cáo Ads - BM An Thực",
+        "business_name": "BM An Thực",
         "business_id": None,
-        "token": os.environ.get("META_TOKEN_BIGTHINK02", ""),
+        "token": os.environ.get("META_TOKEN_ANTHUC") or os.environ.get("META_TOKEN_BIGTHINK02", ""),
         "enabled": True
     },
     "BM_AG": {
