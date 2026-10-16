@@ -366,12 +366,18 @@ def fetch_campaign_budgets(active_accounts, camp_map):
     def fetch_acc_budgets(acc):
         token = acc.get('token', CONFIG['META_TOKEN'])
         u = (f"https://graph.facebook.com/{CONFIG['META_API_VERSION']}/{acc['id']}/campaigns?"
-             f"fields=id,status,effective_status,daily_budget,lifetime_budget&limit=500&access_token={token}")
+             f"fields=id,status,effective_status,daily_budget,lifetime_budget,adsets.limit(50)%7Bid,status,effective_status,daily_budget,lifetime_budget%7D&limit=500&access_token={token}")
         try:
             d = fetch_json(u)
             return d.get('data', [])
         except:
-            return []
+            u_fallback = (f"https://graph.facebook.com/{CONFIG['META_API_VERSION']}/{acc['id']}/campaigns?"
+                          f"fields=id,status,effective_status,daily_budget,lifetime_budget&limit=500&access_token={token}")
+            try:
+                d = fetch_json(u_fallback)
+                return d.get('data', [])
+            except:
+                return []
 
     with ThreadPoolExecutor(max_workers=15) as ex:
         results = list(ex.map(fetch_acc_budgets, active_accounts))
@@ -381,6 +387,11 @@ def fetch_campaign_budgets(active_accounts, camp_map):
             cid = str(c['id']).strip()
             if cid in camp_map:
                 raw_b = float(c.get('daily_budget') or c.get('lifetime_budget') or 0)
+                if raw_b <= 0 and c.get('adsets') and c['adsets'].get('data'):
+                    adsets = c['adsets']['data']
+                    active_adsets = [a for a in adsets if (a.get('effective_status') or a.get('status')) == 'ACTIVE']
+                    target_adsets = active_adsets if active_adsets else adsets
+                    raw_b = sum(float(a.get('daily_budget') or a.get('lifetime_budget') or 0) for a in target_adsets)
                 camp_map[cid]['budget'] = raw_b / 100.0 if raw_b > 0 else 0.0
                 camp_map[cid]['status'] = c.get('effective_status') or c.get('status') or 'PAUSED'
 
@@ -680,7 +691,8 @@ def build_fb_campaign_data(camp_map, adjust_by_camp, dates_info, email_map=None)
     headers = [
         'Date', 'Mã SP', 'Email', 'Campaign name', 'Insight', 'Campaign id', 'Account name',
         'Campaign status', 'Budget', 'Total Cost', 'Mobile App Install', 'CPI', 'ROAS',
-        'ROAS D-1', 'ROAS D-2', 'Rev D0', 'Time kéo'
+        'ROAS D-1', 'ROAS D-2', 'Rev D0', 'Time kéo',
+        'CPI D-1', 'LTV D0', 'LTV D-1', 'Account ID', 'BM'
     ]
     rows = []
 
@@ -696,6 +708,7 @@ def build_fb_campaign_data(camp_map, adjust_by_camp, dates_info, email_map=None)
             rev = adjust_by_camp.get(cid, {}).get(day_str, 0.0)
 
             cost_d1 = c['cost'].get(m1_str, 0.0)
+            inst_d1 = c['installs'].get(m1_str, 0)
             rev_d1 = adjust_by_camp.get(cid, {}).get(m1_str, 0.0)
 
             cost_d2 = c['cost'].get(m2_str, 0.0)
@@ -705,17 +718,24 @@ def build_fb_campaign_data(camp_map, adjust_by_camp, dates_info, email_map=None)
                 continue
 
             cpi = (cost / inst) if inst > 0 else 0.0
+            cpi_d1 = (cost_d1 / inst_d1) if inst_d1 > 0 else 0.0
             roas = (rev / cost) if cost > 0 else 0.0
             roas_d1 = (rev_d1 / cost_d1) if cost_d1 > 0 else 0.0
             roas_d2 = (rev_d2 / cost_d2) if cost_d2 > 0 else 0.0
+            ltv_d0 = (rev / inst) if inst > 0 else 0.0
+            ltv_d1 = (rev_d1 / inst_d1) if inst_d1 > 0 else 0.0
+
+            acc_id_clean = str(c.get('account_id', '')).replace('act_', '').strip()
+            bm_str = ', '.join(c.get('bms', []))
 
             sp = c.get('app_id') or c.get('name')
             for email_field in get_app_emails(sp, email_map, account_name=c.get('account_name', '')):
                 rows.append({
                     'row': [
                         day_disp, c['app_id'], email_field, c['name'], c['insight'], cid, c['account_name'],
-                        c['status'], round(c['budget'], 2), round(cost, 2), inst, round(cpi, 2),
-                        round(roas, 4), round(roas_d1, 4), round(roas_d2, 4), round(rev, 2), now_str
+                        c['status'], round(c['budget'], 2), round(cost, 2), inst, round(cpi, 3),
+                        round(roas, 4), round(roas_d1, 4), round(roas_d2, 4), round(rev, 2), now_str,
+                        round(cpi_d1, 4), round(ltv_d0, 4), round(ltv_d1, 4), acc_id_clean, bm_str
                     ],
                     'raw_time': dt['raw_time'],
                     'cost': cost
@@ -723,6 +743,7 @@ def build_fb_campaign_data(camp_map, adjust_by_camp, dates_info, email_map=None)
 
     rows.sort(key=lambda r: (r['raw_time'], r['cost']), reverse=True)
     return [headers] + [r['row'] for r in rows]
+
 
 def build_fb_country_data(camp_country_map, adjust_by_camp_country, dates_info, email_map=None):
     headers = [
@@ -1064,6 +1085,16 @@ def send_to_google_sheet(payload, webhook_url, bm_name):
         ('phanQuyen', 'PhanQuyen')
     ]
 
+    if 'metaTokens' in payload and payload['metaTokens']:
+        try:
+            data_bytes = json.dumps({'action': 'sync_meta_tokens', 'metaTokens': payload['metaTokens']}).encode('utf-8')
+            req = urllib.request.Request(url, data=data_bytes, headers={'Content-Type': 'application/json'})
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                resp.read()
+            print(f"🔑 [{bm_name}] Đã đồng bộ cấu hình Token điều khiển Campaign lên Apps Script!", flush=True)
+        except Exception as e:
+            print(f"⚠️ [{bm_name}] Không thể đồng bộ metaTokens: {e}", flush=True)
+
     for sheet_key, sheet_name in sheet_order:
         if sheet_key in payload and len(payload[sheet_key]) > 0:
             rows = payload[sheet_key]
@@ -1179,7 +1210,15 @@ def run_sync():
     print(f"   - PhanQuyen: {len(phan_quyen_table) - 1} dòng", flush=True)
     print(f"   - Tình trạng account: {len(account_status_table) - 1} dòng", flush=True)
 
+    meta_tokens_map = {}
+    if CONFIG.get('META_TOKEN'):
+        meta_tokens_map['DEFAULT'] = CONFIG['META_TOKEN']
+    for bm_k, bm_v in BM_CONFIGS.items():
+        if bm_v.get('token'):
+            meta_tokens_map[bm_k] = bm_v['token']
+
     payload = {
+        'metaTokens': meta_tokens_map,
         'hourly': hourly_table,
         'fbCampaign': fb_camp_table,
         'fbCountry': fb_country_table,

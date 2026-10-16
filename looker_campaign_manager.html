@@ -1,0 +1,2091 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ads Campaign Manager & Looker Studio Control Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-row-hover: #f5f9f2;
+      --bg-row-highlight: #f3f8ec;
+      --border-light: #eceef2;
+      --border-input: #d1d5db;
+      --text-main: #111827;
+      --text-secondary: #4b5563;
+      --text-muted: #9ca3af;
+      --green-toggle: #4caf50;
+      --green-badge-bg: #dcfce7;
+      --green-badge-text: #15803d;
+      --amber-badge-bg: #fef3c7;
+      --amber-badge-text: #b45309;
+      --red-badge-bg: #fee2e2;
+      --red-badge-text: #dc2626;
+      --up-green: #16a34a;
+      --down-red: #dc2626;
+      --primary: #2563eb;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-size: 13.5px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ==================== TOP BAR ==================== */
+    .topbar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-light);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    body.embed-mode .topbar-brand {
+      display: none;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      color: #0f172a;
+    }
+
+    .brand-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #4caf50;
+      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+    }
+
+    .nav-tabs {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 8px;
+      gap: 2px;
+    }
+
+    .nav-tab {
+      border: none;
+      background: transparent;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-tab.active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ==================== FILTER BAR ==================== */
+    .filter-bar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-light);
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .control-input, .control-select {
+      height: 32px;
+      padding: 0 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-family: inherit;
+      color: #1f2937;
+      background: #ffffff;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .control-input:focus, .control-select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+    }
+
+    .btn {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #374151;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      background: #f9fafb;
+      border-color: #9ca3af;
+    }
+
+    .btn-primary {
+      background: #16a34a;
+      border-color: #16a34a;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: #15803d;
+      border-color: #15803d;
+    }
+
+    .btn-blue {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #ffffff;
+    }
+
+    .btn-blue:hover {
+      background: #1d4ed8;
+    }
+
+    .user-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .user-pill.admin {
+      background: #fef3c7;
+      color: #b45309;
+      border-color: #fde68a;
+    }
+
+    /* ==================== SUMMARY KPI CARDS ==================== */
+    .summary-strip {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 18px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border-light);
+      overflow-x: auto;
+      font-size: 12.5px;
+    }
+
+    .kpi-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      color: #4b5563;
+    }
+
+    .kpi-item strong {
+      color: #111827;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .kpi-divider {
+      width: 1px;
+      height: 16px;
+      background: #cbd5e1;
+    }
+
+    /* ==================== LOOKER EMBED CONTAINER ==================== */
+    .looker-panel {
+      display: none;
+      width: 100%;
+      background: #ffffff;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .looker-panel.visible {
+      display: block;
+    }
+
+    .looker-iframe {
+      width: 100%;
+      height: 540px;
+      border: none;
+      display: block;
+    }
+
+    .looker-panel.full-height .looker-iframe {
+      height: calc(100vh - 110px);
+    }
+
+    .looker-empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: #64748b;
+    }
+
+    /* ==================== TREE TABLE (EXACT SCREENSHOT MATCH) ==================== */
+    .table-wrapper {
+      background: #ffffff;
+      width: 100%;
+      overflow-x: auto;
+      min-height: calc(100vh - 145px);
+    }
+
+    table.ads-tree-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      min-width: 1180px;
+    }
+
+    table.ads-tree-table thead th {
+      position: sticky;
+      top: 0;
+      background: #f9fafb;
+      color: #4b5563;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: right;
+      z-index: 20;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    table.ads-tree-table thead th:first-child {
+      text-align: left;
+      width: 390px;
+      padding-left: 16px;
+    }
+
+    table.ads-tree-table thead th.col-toggle {
+      text-align: center;
+      width: 88px;
+    }
+
+    table.ads-tree-table thead th.col-budget {
+      text-align: center;
+      width: 136px;
+    }
+
+    table.ads-tree-table thead th.col-metric {
+      width: 92px;
+    }
+
+    table.ads-tree-table thead th.col-delta {
+      width: 68px;
+    }
+
+    table.ads-tree-table tbody tr {
+      border-bottom: 1px solid var(--border-light);
+      transition: background-color 0.1s;
+    }
+
+    table.ads-tree-table tbody tr:hover {
+      background-color: var(--bg-row-hover);
+    }
+
+    table.ads-tree-table tbody tr.row-app {
+      background-color: #ffffff;
+      font-weight: 700;
+    }
+
+    table.ads-tree-table tbody tr.row-app:hover {
+      background-color: #f8fafc;
+    }
+
+    table.ads-tree-table tbody tr.row-network {
+      background-color: #fcfdfd;
+      font-weight: 500;
+    }
+
+    table.ads-tree-table tbody tr.row-campaign {
+      background-color: #ffffff;
+    }
+
+    table.ads-tree-table tbody tr.row-campaign:hover {
+      background-color: var(--bg-row-highlight);
+    }
+
+    table.ads-tree-table tbody tr.row-country {
+      background-color: #f8fafc;
+      font-size: 12.5px;
+      color: #334155;
+    }
+
+    table.ads-tree-table tbody td {
+      padding: 9px 12px;
+      text-align: right;
+      vertical-align: middle;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      color: #111827;
+    }
+
+    table.ads-tree-table tbody td:first-child {
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-left: 14px;
+    }
+
+    table.ads-tree-table tbody td.col-toggle,
+    table.ads-tree-table tbody td.col-budget {
+      text-align: center;
+    }
+
+    /* ==================== TREE NODE STYLING ==================== */
+    .tree-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .indent-1 { padding-left: 18px; }
+    .indent-2 { padding-left: 38px; }
+    .indent-3 { padding-left: 62px; }
+
+    .chevron-btn {
+      width: 20px;
+      height: 20px;
+      border: none;
+      background: transparent;
+      color: #6b7280;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      flex-shrink: 0;
+      transition: transform 0.15s, background-color 0.15s;
+    }
+
+    .chevron-btn:hover {
+      background: rgba(0, 0, 0, 0.06);
+      color: #111827;
+    }
+
+    .chevron-btn.expanded svg {
+      transform: rotate(90deg);
+    }
+
+    .sp-badge {
+      background: #f1f3f5;
+      color: #374151;
+      font-weight: 600;
+      font-size: 11.5px;
+      padding: 2px 7px;
+      border-radius: 5px;
+      letter-spacing: 0.01em;
+      flex-shrink: 0;
+      border: 1px solid #e5e7eb;
+    }
+
+    .app-title {
+      font-weight: 700;
+      color: #111827;
+      font-size: 13.5px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mkt-subbadge {
+      font-size: 11px;
+      font-weight: 500;
+      color: #6b7280;
+      background: #f9fafb;
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid #e5e7eb;
+      margin-left: 4px;
+      flex-shrink: 0;
+    }
+
+    .network-title {
+      font-weight: 500;
+      color: #1f2937;
+      font-size: 13.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .camp-title {
+      font-weight: 400;
+      color: #1f2937;
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ==================== ON / OFF TOGGLE SWITCH (EXACT SCREENSHOT MATCH) ==================== */
+    .toggle-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle- wrapper.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .switch-track {
+      width: 40px;
+      height: 22px;
+      border-radius: 999px;
+      background: #cbd5e1;
+      position: relative;
+      transition: background-color 0.2s;
+      flex-shrink: 0;
+    }
+
+    .switch-track.on {
+      background: var(--green-toggle);
+    }
+
+    .switch-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .switch-track.on .switch-thumb {
+      transform: translateX(18px);
+    }
+
+    .switch-label {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #64748b;
+      min-width: 20px;
+      text-align: left;
+    }
+
+    .switch-label.on {
+      color: #2e7d32;
+    }
+
+    /* ==================== BUDGET STEPPER [- $ 61 +] (EXACT SCREENSHOT MATCH) ==================== */
+    .budget-box {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #d1d5db;
+      border-radius: 7px;
+      background: #ffffff;
+      height: 29px;
+      padding: 0 4px;
+      width: 112px;
+      justify-content: space-between;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .budget-box:focus-within {
+      border-color: #4caf50;
+      box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.15);
+    }
+
+    .budget-box.saving {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .budget-box.saved {
+      border-color: #22c55e;
+      background: #f0fdf4;
+    }
+
+    .budget-step-btn {
+      width: 22px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      color: #6b7280;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    .budget-step-btn:hover {
+      background: #f3f4f6;
+      color: #111827;
+    }
+
+    .budget-currency {
+      color: #6b7280;
+      font-size: 12.5px;
+      font-weight: 500;
+      margin-left: 1px;
+    }
+
+    .budget-input {
+      width: 48px;
+      border: none;
+      background: transparent;
+      text-align: right;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: #111827;
+      outline: none;
+      padding-right: 3px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .budget-input::-webkit-outer-spin-button,
+    .budget-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* ==================== ROAS PILL & DELTA WITH DARK TOOLTIP ==================== */
+    .roas-pill {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12.5px;
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .roas-pill.good {
+      background-color: var(--green-badge-bg);
+      color: var(--green-badge-text);
+    }
+
+    .roas-pill.warn {
+      background-color: var(--amber-badge-bg);
+      color: var(--amber-badge-text);
+    }
+
+    .roas-pill.bad {
+      background-color: var(--red-badge-bg);
+      color: var(--red-badge-text);
+    }
+
+    .delta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 1px;
+      font-size: 11.5px;
+      font-weight: 600;
+      position: relative;
+      cursor: default;
+      padding: 2px 3px;
+      border-radius: 4px;
+    }
+
+    .delta-badge.positive {
+      color: var(--up-green);
+    }
+
+    .delta-badge.negative {
+      color: var(--down-red);
+    }
+
+    .delta-badge.neutral {
+      color: var(--text-muted);
+    }
+
+    .delta-badge[data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 5px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #262626;
+      color: #ffffff;
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 5px 9px;
+      border-radius: 5px;
+      white-space: nowrap;
+      z-index: 99;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+      pointer-events: none;
+    }
+
+    /* ==================== DRILLDOWN PANEL (COUNTRIES + HOURLY ROAS) ==================== */
+    .drilldown-box {
+      padding: 10px 18px 14px 62px;
+      background: #f8fafc;
+      border-top: 1px dashed #e2e8f0;
+    }
+
+    .hourly-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+
+    .hourly-chip {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      padding: 3px 8px;
+      color: #334155;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ==================== MODAL & TOAST ==================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 580px;
+      padding: 20px 24px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .form-row {
+      margin-bottom: 12px;
+    }
+
+    .form-row label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+
+    .form-row input, .form-row textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 400;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      background: #1e293b;
+      color: #ffffff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideIn 0.2s ease-out;
+    }
+
+    .toast.success { border-left: 4px solid #22c55e; }
+    .toast.error { border-left: 4px solid #ef4444; }
+    .toast.info { border-left: 4px solid #3b82f6; }
+
+    @keyframes slideIn {
+      from { transform: translateY(12px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-brand">
+        <span class="brand-dot"></span>
+        <span>Unisoft Ads Control & Looker Center</span>
+      </div>
+
+      <div class="nav-tabs">
+        <button class="nav-tab active" id="tabBtnControl" onclick="switchViewMode('control')">
+          🎛️ Quản lý Campaign & Budget
+        </button>
+        <button class="nav-tab" id="tabBtnSplit" onclick="switchViewMode('split')">
+          ⚡ Looker + Điều khiển (Split View)
+        </button>
+        <button class="nav-tab" id="tabBtnLooker" onclick="switchViewMode('looker')">
+          📊 Báo cáo Looker Studio
+        </button>
+        <button class="nav-tab" id="tabBtnLogs" onclick="switchViewMode('logs')">
+          📜 Lịch sử thao tác
+        </button>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div id="userRoleBadge" class="user-pill">
+        👤 Đang xác thực...
+      </div>
+
+      <!-- Admin Impersonation / View-As Filter -->
+      <select id="adminEmailSwitch" class="control-select" style="display:none;" onchange="onAdminSwitchUser(this.value)" title="Admin: Xem theo góc nhìn Marketer">
+        <option value="ALL">👑 Admin: Xem tất cả Marketer</option>
+      </select>
+
+      <button class="btn" onclick="openSettingsModal()" title="Cấu hình Webhook, Token Meta & Link Looker Studio">
+        ⚙️ Cấu hình
+      </button>
+      <button class="btn btn-blue" onclick="loadDashboardData(true)">
+        🔄 Làm mới
+      </button>
+      <button class="btn btn-primary" onclick="triggerCloudSyncNow()" title="Kích hoạt GitHub Actions kéo số mới nhất từ Meta & Adjust">
+        ⚡ Kéo số Cloud
+      </button>
+    </div>
+  </header>
+
+  <!-- FILTER BAR -->
+  <section class="filter-bar" id="filterBarSection">
+    <div class="filter-group">
+      <label style="font-size:12px;font-weight:600;color:#4b5563;">📅 Ngày:</label>
+      <select id="dateSelect" class="control-select" onchange="renderTreeTable()"></select>
+
+      <input type="text" id="searchInput" class="control-input" style="width:230px;" placeholder="🔍 Tìm Mã SP, tên App, Campaign..." oninput="renderTreeTable()" />
+
+      <select id="statusFilter" class="control-select" onchange="renderTreeTable()">
+        <option value="ALL">Trạng thái: Tất cả</option>
+        <option value="ACTIVE">🟢 Đang BẬT (ON)</option>
+        <option value="PAUSED">⚪ Đang TẮT (OFF)</option>
+      </select>
+
+      <select id="roasFilter" class="control-select" onchange="renderTreeTable()">
+        <option value="ALL">Mọi mức ROAS</option>
+        <option value="HIGH">🟢 ROAS ≥ 100% (Tốt - Tăng tốc)</option>
+        <option value="MID">🟡 ROAS 70% - 100% (Theo dõi)</option>
+        <option value="LOW">🔴 ROAS &lt; 70% (Kém - Cân nhắc tắt)</option>
+      </select>
+
+      <label style="font-size:12px;color:#4b5563;display:inline-flex;align-items:center;gap:4px;cursor:pointer;">
+        <input type="checkbox" id="chkExpandAll" onchange="toggleExpandAll(this.checked)" />
+        Mở rộng toàn bộ Campaign
+      </label>
+    </div>
+
+    <div class="filter-group">
+      <span style="font-size:12px;color:#6b7280;">Bước tăng/giảm nút <b>-/+</b>:</span>
+      <select id="budgetStepSelect" class="control-select" style="width:78px;">
+        <option value="1">$1</option>
+        <option value="2">$2</option>
+        <option value="5" selected>$5</option>
+        <option value="10">$10</option>
+        <option value="20">$20</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- KPI SUMMARY BAR -->
+  <section class="summary-strip" id="summaryStripSection">
+    <div class="kpi-item">Tổng App: <strong id="kpiApps">0</strong></div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-item">Chiến dịch: <strong id="kpiCamps">0</strong> (<span style="color:#16a34a;font-weight:600;" id="kpiActiveCamps">0 ON</span>)</div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-item">Tổng Chi Tiêu (Spend): <strong id="kpiSpend">$0.00</strong></div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-item">Tổng Doanh Thu D0 (Rev): <strong id="kpiRev">$0.00</strong></div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-item">ROAS D0 Trung Bình: <strong id="kpiRoas">0.0%</strong></div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-item">Tổng Installs: <strong id="kpiInstalls">0</strong></div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-item">CPI Trung Bình: <strong id="kpiCpi">$0.000</strong></div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-item" style="margin-left:auto;color:#64748b;" id="lastSyncTimeLabel">Cập nhật: --:--:--</div>
+  </section>
+
+  <!-- LOOKER STUDIO EMBED PANEL -->
+  <section id="lookerPanel" class="looker-panel">
+    <div id="lookerContainer"></div>
+  </section>
+
+  <!-- MAIN HIERARCHICAL TREE TABLE -->
+  <main class="table-wrapper" id="controlTableSection">
+    <table class="ads-tree-table">
+      <thead>
+        <tr>
+          <th onclick="setSort('name')">Ứng dụng / Kênh / Chiến dịch</th>
+          <th class="col-toggle">Bật / Tắt</th>
+          <th class="col-budget">Budget (Ngày)</th>
+          <th class="col-metric" onclick="setSort('spend')">Chi tiêu ↓</th>
+          <th class="col-metric" onclick="setSort('rev')">Doanh thu D0</th>
+          <th class="col-metric" onclick="setSort('roas')">ROAS D0</th>
+          <th class="col-delta" title="Thay đổi ROAS so với hôm qua (D-1)">% ROAS</th>
+          <th class="col-metric" onclick="setSort('installs')">Installs</th>
+          <th class="col-metric" onclick="setSort('cpi')">CPI</th>
+          <th class="col-delta" title="Thay đổi CPI so với hôm qua (D-1)">% CPI</th>
+          <th class="col-metric" onclick="setSort('ltv')">LTV D0</th>
+        </tr>
+      </thead>
+      <tbody id="treeTableBody">
+        <tr>
+          <td colspan="11" style="text-align:center;padding:48px;color:#64748b;">
+            ⏳ Đang tải dữ liệu chiến dịch & phân quyền từ Google Sheets...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+
+  <!-- ACTION LOGS VIEW -->
+  <section class="table-wrapper" id="logsTableSection" style="display:none;padding:18px;">
+    <h3 style="margin-bottom:12px;font-size:15px;">📜 Nhật ký Bật/Tắt Campaign & Điều chỉnh Ngân sách</h3>
+    <table class="ads-tree-table" style="min-width:900px;">
+      <thead>
+        <tr>
+          <th style="width:160px;">Thời gian</th>
+          <th style="width:200px;text-align:left;">Email thực hiện</th>
+          <th style="width:90px;text-align:center;">Mã SP</th>
+          <th style="width:280px;text-align:left;">Chiến dịch (Campaign)</th>
+          <th style="width:140px;text-align:center;">Hành động</th>
+          <th style="text-align:left;">Chi tiết thay đổi</th>
+        </tr>
+      </thead>
+      <tbody id="logsTableBody">
+        <tr><td colspan="6" style="text-align:center;padding:30px;color:#64748b;">Chưa có lịch sử thao tác nào.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SETTINGS & AUTH MODAL -->
+  <div class="modal-backdrop" id="settingsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚙️ Cấu hình Kết nối, Phân quyền & Looker Studio</h3>
+        <button class="btn" onclick="closeSettingsModal()">✕</button>
+      </div>
+
+      <div class="form-row">
+        <label>📧 Email của bạn (Dùng để phân quyền Mã SP theo bảng Validate / PhanQuyen):</label>
+        <input type="email" id="cfgUserEmail" placeholder="vd: ductq@unisoftstudio.com hoặc quynhnn@unisoftstudio.com" />
+        <small style="color:#6b7280;font-size:11.5px;">Marketer chỉ thấy và chỉnh được Campaign thuộc Mã SP của mình. Admin xem và chỉnh được toàn bộ.</small>
+      </div>
+
+      <div class="form-row">
+        <label>🔗 Google Apps Script Webhook URL (Sheet chính):</label>
+        <input type="text" id="cfgWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+      </div>
+
+      <div class="form-row">
+        <label>📊 Link Nhúng Báo Cáo Looker Studio (Embed URL):</label>
+        <input type="text" id="cfgLookerUrl" placeholder="https://lookerstudio.google.com/embed/reporting/..." />
+        <small style="color:#6b7280;font-size:11.5px;">Trong Looker Studio: Bấm File ➔ Embed report (Nhúng báo cáo) ➔ Copy Embed URL dán vào đây.</small>
+      </div>
+
+      <div class="form-row">
+        <label>🔑 Meta Access Token (Tùy chọn - Nếu muốn ghi đè trực tiếp từ trình duyệt):</label>
+        <input type="password" id="cfgCustomFbToken" placeholder="Để trống nếu đã đồng bộ tự động qua Cloud / Apps Script" />
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+        <button class="btn" onclick="closeSettingsModal()">Hủy</button>
+        <button class="btn btn-primary" onclick="saveSettingsFromModal()">💾 Lưu & Tải lại dữ liệu</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // ==================== STATE & CONFIG ====================
+    const DEFAULT_WEBHOOK_URL = window.__APPS_SCRIPT_WEBHOOK_URL__ || localStorage.getItem('unisoft_webhook_url') || 'https://script.google.com/macros/s/AKfycby75UnIdHKTuRb8E3rAMTLws-nU22eag0JD95roKQWPi6CEvgYMEHz03Am0NVsjx5sQbg/exec';
+    const SERVER_DETECTED_EMAIL = window.__SERVER_USER_EMAIL__ || '';
+
+    let state = {
+      webhookUrl: localStorage.getItem('unisoft_webhook_url') || DEFAULT_WEBHOOK_URL,
+      userEmail: (SERVER_DETECTED_EMAIL || localStorage.getItem('unisoft_user_email') || 'ductq@unisoftstudio.com').toLowerCase().trim(),
+      adminFilterEmail: 'ALL',
+      lookerUrl: localStorage.getItem('unisoft_looker_url') || '',
+      customFbToken: localStorage.getItem('unisoft_custom_fb_token') || '',
+      isAdmin: false,
+      dates: [],
+      rawCutOff: [],
+      rawFbCampaigns: [],
+      rawGoogleCampaigns: [],
+      rawFbCountries: [],
+      rawHourly: [],
+      actionLogs: [],
+      expandedApps: new Set(),
+      expandedNetworks: new Set(),
+      expandedCampaigns: new Set(),
+      sortBy: 'spend',
+      sortDesc: true,
+      budgetTimers: {}
+    };
+
+    // Check URL params (for Looker Studio iframe embed mode)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('embed') === '1') {
+      document.body.classList.add('embed-mode');
+    }
+    if (urlParams.get('email')) {
+      state.userEmail = urlParams.get('email').toLowerCase().trim();
+      localStorage.setItem('unisoft_user_email', state.userEmail);
+    }
+    if (urlParams.get('webhook')) {
+      state.webhookUrl = urlParams.get('webhook').trim();
+      localStorage.setItem('unisoft_webhook_url', state.webhookUrl);
+    }
+
+    // ==================== FORMAT HELPERS ====================
+    function fmtCurrency(val, decimals = 2) {
+      const n = Number(val) || 0;
+      return '$' + n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+
+    function fmtRoasPill(roasRatio) {
+      const pct = (Number(roasRatio) || 0) * 100;
+      let cls = 'bad';
+      if (pct >= 100) cls = 'good';
+      else if (pct >= 70) cls = 'warn';
+      return `<span class="roas-pill ${cls}">${pct.toFixed(1)}%</span>`;
+    }
+
+    /**
+     * Hiển thị % thay đổi so với hôm qua (D-1) kèm Tooltip "Hôm qua: 0.2639" giống hệt ảnh mẫu
+     * @param {number} todayVal Giá trị hôm nay
+     * @param {number} yesterdayVal Giá trị hôm qua (D-1)
+     * @param {boolean} inverseColor Nếu là CPI: tăng (▲) là Đỏ (xấu), giảm (▼) là Xanh (tốt)
+     * @param {number} tooltipDecimals Số chữ số thập phân hiển thị trong tooltip
+     */
+    function fmtDelta(todayVal, yesterdayVal, inverseColor = false, tooltipDecimals = 4) {
+      const t = Number(todayVal) || 0;
+      const y = Number(yesterdayVal) || 0;
+      if (y <= 0 || t <= 0) {
+        return `<span class="delta-badge neutral">-</span>`;
+      }
+      const diffPct = ((t - y) / y) * 100;
+      const absPct = Math.round(Math.abs(diffPct));
+      if (absPct === 0) {
+        return `<span class="delta-badge neutral" data-tooltip="Hôm qua: ${y.toFixed(tooltipDecimals)}">0%</span>`;
+      }
+      const isUp = diffPct > 0;
+      const arrow = isUp ? '▲' : '▼';
+      let colorClass = isUp ? 'positive' : 'negative';
+      if (inverseColor) {
+        colorClass = isUp ? 'negative' : 'positive';
+      }
+      const tooltipText = `Hôm qua: ${y.toFixed(tooltipDecimals)}`;
+      return `<span class="delta-badge ${colorClass}" data-tooltip="${tooltipText}">${arrow}${absPct}%</span>`;
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `<span>${msg}</span>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 250);
+      }, 3600);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // ==================== VIEW SWITCHING (LOOKER + CONTROL) ====================
+    function switchViewMode(mode) {
+      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+      const lookerPanel = document.getElementById('lookerPanel');
+      const controlSection = document.getElementById('controlTableSection');
+      const logsSection = document.getElementById('logsTableSection');
+      const filterBar = document.getElementById('filterBarSection');
+      const summaryStrip = document.getElementById('summaryStripSection');
+
+      lookerPanel.classList.remove('visible', 'full-height');
+      controlSection.style.display = 'none';
+      logsSection.style.display = 'none';
+      filterBar.style.display = 'flex';
+      summaryStrip.style.display = 'flex';
+
+      if (mode === 'control') {
+        document.getElementById('tabBtnControl').classList.add('active');
+        controlSection.style.display = 'block';
+      } else if (mode === 'split') {
+        document.getElementById('tabBtnSplit').classList.add('active');
+        lookerPanel.classList.add('visible');
+        controlSection.style.display = 'block';
+        renderLookerEmbed();
+      } else if (mode === 'looker') {
+        document.getElementById('tabBtnLooker').classList.add('active');
+        lookerPanel.classList.add('visible', 'full-height');
+        filterBar.style.display = 'none';
+        renderLookerEmbed();
+      } else if (mode === 'logs') {
+        document.getElementById('tabBtnLogs').classList.add('active');
+        logsSection.style.display = 'block';
+        filterBar.style.display = 'none';
+        renderActionLogs();
+      }
+    }
+
+    function renderLookerEmbed() {
+      const container = document.getElementById('lookerContainer');
+      if (!state.lookerUrl) {
+        container.innerHTML = `
+          <div class="looker-empty">
+            <h3 style="margin-bottom:8px;color:#1e293b;">📊 Chưa cấu hình đường dẫn nhúng Looker Studio</h3>
+            <p style="margin-bottom:14px;">Bạn có thể dán link Looker Studio Embed vào phần <b>⚙️ Cấu hình</b> để xem trực tiếp báo cáo trên cùng màn hình này, hoặc nhúng bảng điều khiển này vào bên trong trang Looker Studio của bạn!</p>
+            <button class="btn btn-blue" onclick="openSettingsModal()">⚙️ Dán Link Looker Studio ngay</button>
+          </div>
+        `;
+        return;
+      }
+      if (!container.querySelector('iframe') || container.querySelector('iframe').src !== state.lookerUrl) {
+        container.innerHTML = `<iframe class="looker-iframe" src="${escapeHtml(state.lookerUrl)}" allowfullscreen></iframe>`;
+      }
+    }
+
+    // ==================== API CALLER (SUPPORTS LOCAL PYTHON SERVER + APPS SCRIPT) ====================
+    async function callApi(payload) {
+      // 1. If running inside Google Apps Script HtmlService
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(res => resolve(typeof res === 'string' ? JSON.parse(res) : res))
+            .withFailureHandler(err => reject(err))
+            .handleClientApiRequest(JSON.stringify(payload));
+        });
+      }
+
+      // 2. If running via Local Python Control Server (/api)
+      if (window.location.protocol.startsWith('http') && window.location.port === '8505') {
+        const res = await fetch('/api', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, webhookUrl: state.webhookUrl })
+        });
+        return await res.json();
+      }
+
+      // 3. Direct call to Google Apps Script Webhook (using text/plain to avoid CORS preflight)
+      const res = await fetch(state.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      return await res.json();
+    }
+
+    // ==================== LOAD DASHBOARD DATA ====================
+    async function loadDashboardData(manual = false) {
+      try {
+        if (manual) showToast('🔄 Đang đồng bộ dữ liệu mới nhất...', 'info');
+        const targetEmail = (state.isAdmin && state.adminFilterEmail !== 'ALL') ? state.adminFilterEmail : state.userEmail;
+
+        const data = await callApi({
+          action: 'get_dashboard_data',
+          email: state.userEmail,
+          filterEmail: targetEmail
+        });
+
+        if (!data || data.status === 'error') {
+          throw new Error((data && data.message) || 'Không thể tải dữ liệu từ Webhook');
+        }
+
+        applyDashboardPayload(data);
+        if (manual) showToast('✅ Đã cập nhật số liệu mới nhất!', 'success');
+      } catch (err) {
+        console.error('Load error:', err);
+        // Fallback demo data if webhook hasn't been updated yet so user can immediately preview & test UI
+        if (!state.rawFbCampaigns || state.rawFbCampaigns.length === 0) {
+          loadPreviewFallbackData();
+          showToast('ℹ️ Đang hiển thị dữ liệu mẫu (Cập nhật Receiver_Webhook.js hoặc cấu hình Webhook để kết nối thật)', 'info');
+        } else {
+          showToast('⚠️ Lỗi tải dữ liệu: ' + err.message, 'error');
+        }
+      }
+    }
+
+    function applyDashboardPayload(data) {
+      state.isAdmin = Boolean(data.isAdmin);
+      if (data.lookerEmbedUrl && !state.lookerUrl) {
+        state.lookerUrl = data.lookerEmbedUrl;
+      }
+
+      // Update User Role Badge
+      const badge = document.getElementById('userRoleBadge');
+      if (state.isAdmin) {
+        badge.className = 'user-pill admin';
+        badge.innerHTML = `👑 Admin (${escapeHtml(state.userEmail)})`;
+        const sel = document.getElementById('adminEmailSwitch');
+        sel.style.display = 'inline-block';
+        const currentVal = sel.value;
+        sel.innerHTML = `<option value="ALL">👑 Xem tất cả (${(data.allUsers || []).length} Marketer)</option>` +
+          (data.allUsers || []).map(u => `<option value="${escapeHtml(u)}">👤 Xem như: ${escapeHtml(u)}</option>`).join('');
+        if (currentVal && Array.from(sel.options).some(o => o.value === currentVal)) {
+          sel.value = currentVal;
+        }
+      } else {
+        badge.className = 'user-pill';
+        badge.innerHTML = `👤 Marketer: ${escapeHtml(state.userEmail)}`;
+        document.getElementById('adminEmailSwitch').style.display = 'none';
+      }
+
+      state.rawCutOff = data.cutoff || [];
+      state.rawFbCampaigns = data.fbCampaigns || [];
+      state.rawGoogleCampaigns = data.googleCampaigns || [];
+      state.rawFbCountries = data.fbCountries || [];
+      state.rawHourly = data.hourly || [];
+      state.actionLogs = data.actionLogs || [];
+
+      // Collect unique dates
+      const dateSet = new Set();
+      state.rawFbCampaigns.forEach(r => { if (r.date) dateSet.add(r.date); });
+      state.rawCutOff.forEach(r => { if (r.date) dateSet.add(r.date); });
+      state.dates = Array.from(dateSet).sort().reverse();
+
+      const dateSel = document.getElementById('dateSelect');
+      const prevDate = dateSel.value;
+      dateSel.innerHTML = state.dates.map((d, idx) =>
+        `<option value="${d}">${d}${idx === 0 ? ' (Hôm nay)' : (idx === 1 ? ' (Hôm qua)' : '')}</option>`
+      ).join('');
+      if (prevDate && state.dates.includes(prevDate)) {
+        dateSel.value = prevDate;
+      }
+
+      // Auto-expand top 2 apps on first load
+      if (state.expandedApps.size === 0 && state.rawFbCampaigns.length > 0) {
+        const firstSp = state.rawFbCampaigns[0].sp;
+        if (firstSp) {
+          state.expandedApps.add(firstSp);
+          state.expandedNetworks.add(`${firstSp}__Facebook`);
+        }
+      }
+
+      document.getElementById('lastSyncTimeLabel').textContent = `Cập nhật: ${data.syncTime || new Date().toLocaleTimeString('vi-VN')}`;
+      renderTreeTable();
+      renderActionLogs();
+    }
+
+    function onAdminSwitchUser(val) {
+      state.adminFilterEmail = val;
+      loadDashboardData(true);
+    }
+
+    // ==================== BUILD & RENDER HIERARCHICAL TREE TABLE ====================
+    function renderTreeTable() {
+      const selectedDate = document.getElementById('dateSelect').value || state.dates[0] || '';
+      const searchQ = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('statusFilter').value;
+      const roasFilter = document.getElementById('roasFilter').value;
+
+      // Determine yesterday date string for D-1 comparison at App/Network level
+      const dateIdx = state.dates.indexOf(selectedDate);
+      const yesterdayDate = (dateIdx >= 0 && dateIdx + 1 < state.dates.length) ? state.dates[dateIdx + 1] : '';
+
+      // 1. Group data by App (Mã SP)
+      const appsMap = {};
+
+      function ensureApp(sp, appName, marketer) {
+        if (!sp) sp = 'UNKNOWN';
+        if (!appsMap[sp]) {
+          appsMap[sp] = {
+            sp,
+            appName: appName || sp,
+            marketer: marketer || '',
+            spendToday: 0,
+            revToday: 0,
+            instToday: 0,
+            spendD1: 0,
+            revD1: 0,
+            instD1: 0,
+            networks: {
+              Facebook: { name: 'Facebook', spend: 0, rev: 0, inst: 0, spendD1: 0, revD1: 0, instD1: 0, campaigns: [] },
+              Google: { name: 'Google', spend: 0, rev: 0, inst: 0, spendD1: 0, revD1: 0, instD1: 0, campaigns: [] }
+            }
+          };
+        } else {
+          if (appName && (appsMap[sp].appName === sp || !appsMap[sp].appName)) {
+            appsMap[sp].appName = appName;
+          }
+          if (marketer && !appsMap[sp].marketer) {
+            appsMap[sp].marketer = marketer;
+          }
+        }
+        return appsMap[sp];
+      }
+
+      // Populate App names & CutOff info
+      state.rawCutOff.forEach(c => {
+        if (c.date === selectedDate || c.date === yesterdayDate) {
+          // Strip duplicate SP prefix from appName if present (e.g. "AB148 Genie..." -> "Genie...")
+          let cleanName = String(c.appName || '').trim();
+          if (cleanName.toUpperCase().startsWith(c.sp.toUpperCase())) {
+            cleanName = cleanName.slice(c.sp.length).replace(/^[\s:\-_]+/, '').trim();
+          }
+          ensureApp(c.sp, cleanName || c.appName, c.marketer);
+        }
+      });
+
+      // Populate Facebook Campaigns for selectedDate
+      const fbCampsToday = state.rawFbCampaigns.filter(c => c.date === selectedDate);
+      fbCampsToday.forEach(c => {
+        const appObj = ensureApp(c.sp, c.appName, c.marketer);
+        const net = appObj.networks.Facebook;
+
+        const spend = Number(c.spend) || 0;
+        const rev = Number(c.rev) || 0;
+        const inst = Number(c.installs) || 0;
+        const roas = spend > 0 ? (rev / spend) : (Number(c.roas) || 0);
+        const roasD1 = Number(c.roasD1) || 0;
+        const cpi = inst > 0 ? (spend / inst) : (Number(c.cpi) || 0);
+        const cpiD1 = Number(c.cpiD1) || 0;
+        const ltv = inst > 0 ? (rev / inst) : (Number(c.ltvD0) || 0);
+
+        net.spend += spend;
+        net.rev += rev;
+        net.inst += inst;
+
+        // Estimate D-1 network totals for accurate % delta
+        if (roasD1 > 0 && spend > 0) {
+          net.spendD1 += spend;
+          net.revD1 += spend * roasD1;
+        }
+        if (cpiD1 > 0 && inst > 0) {
+          net.instD1 += inst;
+        }
+
+        net.campaigns.push({
+          ...c,
+          spend,
+          rev,
+          installs: inst,
+          roas,
+          roasD1,
+          cpi,
+          cpiD1,
+          ltv
+        });
+      });
+
+      // Populate Google Campaigns if any
+      const ggCampsToday = state.rawGoogleCampaigns.filter(c => c.date === selectedDate);
+      ggCampsToday.forEach(c => {
+        const appObj = ensureApp(c.sp, c.appName, c.marketer);
+        const net = appObj.networks.Google;
+        const spend = Number(c.spend) || 0;
+        const rev = Number(c.rev) || 0;
+        const inst = Number(c.installs) || 0;
+        const roas = spend > 0 ? (rev / spend) : (Number(c.roas) || 0);
+        const cpi = inst > 0 ? (spend / inst) : (Number(c.cpi) || 0);
+        const ltv = inst > 0 ? (rev / inst) : 0;
+
+        net.spend += spend;
+        net.rev += rev;
+        net.inst += inst;
+        net.campaigns.push({
+          ...c,
+          isGoogle: true,
+          spend,
+          rev,
+          installs: inst,
+          roas,
+          roasD1: Number(c.roasD1) || 0,
+          cpi,
+          cpiD1: 0,
+          ltv
+        });
+      });
+
+      // Compute App-level totals from Networks / CutOff
+      Object.values(appsMap).forEach(app => {
+        const fb = app.networks.Facebook;
+        const gg = app.networks.Google;
+        app.spendToday = fb.spend + gg.spend;
+        app.revToday = fb.rev + gg.rev;
+        app.instToday = fb.inst + gg.inst;
+        app.roasToday = app.spendToday > 0 ? (app.revToday / app.spendToday) : 0;
+        app.cpiToday = app.instToday > 0 ? (app.spendToday / app.instToday) : 0;
+        app.ltvToday = app.instToday > 0 ? (app.revToday / app.instToday) : 0;
+
+        // D-1 from CutOff if available
+        const cutD1 = state.rawCutOff.find(r => r.date === yesterdayDate && r.sp === app.sp);
+        if (cutD1 && Number(cutD1.spend) > 0) {
+          app.roasD1 = Number(cutD1.roas) || (Number(cutD1.rev) / Number(cutD1.spend));
+          app.cpiD1 = Number(cutD1.installs) > 0 ? (Number(cutD1.spend) / Number(cutD1.installs)) : 0;
+        } else {
+          // Fallback weighted average from campaigns
+          const campsWithR1 = fb.campaigns.filter(x => x.roasD1 > 0);
+          app.roasD1 = campsWithR1.length > 0
+            ? campsWithR1.reduce((acc, x) => acc + x.roasD1 * x.spend, 0) / (campsWithR1.reduce((acc, x) => acc + x.spend, 0) || 1)
+            : 0;
+          const campsWithC1 = fb.campaigns.filter(x => x.cpiD1 > 0);
+          app.cpiD1 = campsWithC1.length > 0
+            ? campsWithC1.reduce((acc, x) => acc + x.cpiD1 * x.installs, 0) / (campsWithC1.reduce((acc, x) => acc + x.installs, 0) || 1)
+            : 0;
+        }
+
+        fb.roas = fb.spend > 0 ? (fb.rev / fb.spend) : 0;
+        fb.cpi = fb.inst > 0 ? (fb.spend / fb.inst) : 0;
+        fb.ltv = fb.inst > 0 ? (fb.rev / fb.inst) : 0;
+        fb.roasD1 = app.roasD1;
+        fb.cpiD1 = app.cpiD1;
+      });
+
+      // Filter Apps & Campaigns
+      let appList = Object.values(appsMap).filter(a => a.spendToday > 0 || a.revToday > 0 || a.networks.Facebook.campaigns.length > 0);
+
+      // Sort Apps
+      appList.sort((a, b) => {
+        const mult = state.sortDesc ? -1 : 1;
+        if (state.sortBy === 'name') return a.sp.localeCompare(b.sp) * mult;
+        if (state.sortBy === 'rev') return (a.revToday - b.revToday) * mult;
+        if (state.sortBy === 'roas') return (a.roasToday - b.roasToday) * mult;
+        if (state.sortBy === 'installs') return (a.instToday - b.instToday) * mult;
+        if (state.sortBy === 'cpi') return (a.cpiToday - b.cpiToday) * mult;
+        if (state.sortBy === 'ltv') return (a.ltvToday - b.ltvToday) * mult;
+        return (a.spendToday - b.spendToday) * mult;
+      });
+
+      // KPI Totals
+      let totalAppsShown = 0;
+      let totalCampsShown = 0;
+      let totalActiveCamps = 0;
+      let grandSpend = 0;
+      let grandRev = 0;
+      let grandInst = 0;
+
+      const htmlRows = [];
+
+      for (const app of appList) {
+        // Filter campaigns inside networks
+        const filteredFbCamps = app.networks.Facebook.campaigns.filter(c => {
+          const isOn = String(c.status).toUpperCase() === 'ACTIVE';
+          if (statusFilter === 'ACTIVE' && !isOn) return false;
+          if (statusFilter === 'PAUSED' && isOn) return false;
+
+          const roasPct = c.roas * 100;
+          if (roasFilter === 'HIGH' && roasPct < 100) return false;
+          if (roasFilter === 'MID' && (roasPct < 70 || roasPct >= 100)) return false;
+          if (roasFilter === 'LOW' && roasPct >= 70) return false;
+
+          if (searchQ) {
+            const hay = `${app.sp} ${app.appName} ${app.marketer} ${c.name} ${c.cid} ${c.accountName}`.toLowerCase();
+            if (!hay.includes(searchQ)) return false;
+          }
+          return true;
+        });
+
+        const filteredGgCamps = app.networks.Google.campaigns.filter(c => {
+          if (searchQ) {
+            const hay = `${app.sp} ${app.appName} ${c.name} ${c.cid}`.toLowerCase();
+            if (!hay.includes(searchQ)) return false;
+          }
+          return true;
+        });
+
+        if (filteredFbCamps.length === 0 && filteredGgCamps.length === 0) {
+          if (searchQ || statusFilter !== 'ALL' || roasFilter !== 'ALL') continue;
+        }
+
+        totalAppsShown++;
+        totalCampsShown += filteredFbCamps.length + filteredGgCamps.length;
+        totalActiveCamps += filteredFbCamps.filter(c => String(c.status).toUpperCase() === 'ACTIVE').length;
+        grandSpend += app.spendToday;
+        grandRev += app.revToday;
+        grandInst += app.instToday;
+
+        const isAppExpanded = state.expandedApps.has(app.sp) || Boolean(searchQ);
+
+        // ==================== ROW LEVEL 1: APP ROW ====================
+        htmlRows.push(`
+          <tr class="row-app" onclick="toggleAppRow('${escapeHtml(app.sp)}')" style="cursor:pointer;">
+            <td>
+              <div class="tree-cell">
+                <button class="chevron-btn ${isAppExpanded ? 'expanded' : ''}" type="button">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+                <span class="sp-badge">${escapeHtml(app.sp)}</span>
+                <span class="app-title" title="${escapeHtml(app.appName)}">${escapeHtml(app.appName)}</span>
+                ${app.marketer ? `<span class="mkt-subbadge">${escapeHtml(app.marketer)}</span>` : ''}
+              </div>
+            </td>
+            <td class="col-toggle"></td>
+            <td class="col-budget"></td>
+            <td><strong>${fmtCurrency(app.spendToday, 2)}</strong></td>
+            <td><strong>${fmtCurrency(app.revToday, 2)}</strong></td>
+            <td>${fmtRoasPill(app.roasToday)}</td>
+            <td>${fmtDelta(app.roasToday, app.roasD1, false, 4)}</td>
+            <td><strong>${app.instToday.toLocaleString('en-US')}</strong></td>
+            <td><strong>${app.instToday > 0 ? fmtCurrency(app.cpiToday, 3) : '-'}</strong></td>
+            <td>${fmtDelta(app.cpiToday, app.cpiD1, true, 4)}</td>
+            <td><strong>${app.instToday > 0 ? fmtCurrency(app.ltvToday, 2) : '$0.00'}</strong></td>
+          </tr>
+        `);
+
+        if (!isAppExpanded) continue;
+
+        // ==================== ROW LEVEL 2: FACEBOOK NETWORK ====================
+        if (filteredFbCamps.length > 0 || app.networks.Facebook.spend > 0) {
+          const fb = app.networks.Facebook;
+          const netKey = `${app.sp}__Facebook`;
+          const isNetExpanded = state.expandedNetworks.has(netKey) || Boolean(searchQ);
+
+          htmlRows.push(`
+            <tr class="row-network" onclick="toggleNetworkRow('${escapeHtml(netKey)}')" style="cursor:pointer;">
+              <td>
+                <div class="tree-cell indent-1">
+                  <button class="chevron-btn ${isNetExpanded ? 'expanded' : ''}" type="button">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  </button>
+                  <span class="network-title">Facebook</span>
+                  <span style="font-size:11.5px;color:#9ca3af;">(${filteredFbCamps.length})</span>
+                </div>
+              </td>
+              <td class="col-toggle"></td>
+              <td class="col-budget"></td>
+              <td>${fmtCurrency(fb.spend, 2)}</td>
+              <td>${fmtCurrency(fb.rev, 2)}</td>
+              <td>${fmtRoasPill(fb.roas)}</td>
+              <td>${fmtDelta(fb.roas, fb.roasD1, false, 4)}</td>
+              <td>${fb.inst.toLocaleString('en-US')}</td>
+              <td>${fb.inst > 0 ? fmtCurrency(fb.cpi, 3) : '-'}</td>
+              <td>${fmtDelta(fb.cpi, fb.cpiD1, true, 4)}</td>
+              <td>${fb.inst > 0 ? fmtCurrency(fb.ltv, 2) : '$0.00'}</td>
+            </tr>
+          `);
+
+          if (isNetExpanded) {
+            // Sort campaigns inside Facebook
+            filteredFbCamps.sort((a, b) => {
+              const mult = state.sortDesc ? -1 : 1;
+              if (state.sortBy === 'rev') return (a.rev - b.rev) * mult;
+              if (state.sortBy === 'roas') return (a.roas - b.roas) * mult;
+              if (state.sortBy === 'installs') return (a.installs - b.installs) * mult;
+              if (state.sortBy === 'cpi') return (a.cpi - b.cpi) * mult;
+              return (a.spend - b.spend) * mult;
+            });
+
+            // ==================== ROW LEVEL 3: CAMPAIGN ROWS ====================
+            for (const camp of filteredFbCamps) {
+              const isOn = String(camp.status).toUpperCase() === 'ACTIVE';
+              const isCampExpanded = state.expandedCampaigns.has(camp.cid);
+              const budgetVal = Math.round(Number(camp.budget) || 0);
+
+              htmlRows.push(`
+                <tr class="row-campaign" id="camp-row-${escapeHtml(camp.cid)}">
+                  <td>
+                    <div class="tree-cell indent-2">
+                      <button class="chevron-btn ${isCampExpanded ? 'expanded' : ''}" type="button" onclick="toggleCampaignDrilldown('${escapeHtml(camp.cid)}')" title="Xem chi tiết Quốc gia & Lịch sử ROAS theo giờ">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                      </button>
+                      <span class="camp-title" title="Campaign: ${escapeHtml(camp.name)}&#10;ID: ${escapeHtml(camp.cid)}&#10;Account: ${escapeHtml(camp.accountName)} (${escapeHtml(camp.bm || '')})">
+                        ${escapeHtml(camp.name)}
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- ON/OFF TOGGLE SWITCH -->
+                  <td class="col-toggle">
+                    <div class="toggle-wrapper" id="toggle-wrap-${escapeHtml(camp.cid)}" onclick="onToggleCampaign('${escapeHtml(camp.cid)}', '${escapeHtml(camp.sp)}', '${escapeHtml(camp.bm || '')}')">
+                      <div class="switch-track ${isOn ? 'on' : ''}" id="switch-track-${escapeHtml(camp.cid)}">
+                        <div class="switch-thumb"></div>
+                      </div>
+                      <span class="switch-label ${isOn ? 'on' : ''}" id="switch-lbl-${escapeHtml(camp.cid)}">${isOn ? 'on' : 'off'}</span>
+                    </div>
+                  </td>
+
+                  <!-- BUDGET STEPPER [- $ 61 +] -->
+                  <td class="col-budget">
+                    <div class="budget-box" id="budget-box-${escapeHtml(camp.cid)}">
+                      <button type="button" class="budget-step-btn" onclick="stepCampaignBudget('${escapeHtml(camp.cid)}', -1)" title="Giảm ngân sách">−</button>
+                      <span class="budget-currency">$</span>
+                      <input type="number" class="budget-input" id="budget-input-${escapeHtml(camp.cid)}"
+                             value="${budgetVal}" min="1" max="5000"
+                             onchange="onDirectBudgetChange('${escapeHtml(camp.cid)}')"
+                             onkeydown="if(event.key==='Enter'){this.blur();}" />
+                      <button type="button" class="budget-step-btn" onclick="stepCampaignBudget('${escapeHtml(camp.cid)}', 1)" title="Tăng ngân sách">+</button>
+                    </div>
+                  </td>
+
+                  <td>${fmtCurrency(camp.spend, 2)}</td>
+                  <td>${fmtCurrency(camp.rev, 2)}</td>
+                  <td>${fmtRoasPill(camp.roas)}</td>
+                  <td>${fmtDelta(camp.roas, camp.roasD1, false, 4)}</td>
+                  <td>${camp.installs.toLocaleString('en-US')}</td>
+                  <td>${camp.installs > 0 ? fmtCurrency(camp.cpi, 3) : '-'}</td>
+                  <td>${fmtDelta(camp.cpi, camp.cpiD1, true, 4)}</td>
+                  <td>${camp.installs > 0 ? fmtCurrency(camp.ltv, 2) : '$0.00'}</td>
+                </tr>
+              `);
+
+              // ==================== ROW LEVEL 4: COUNTRY & HOURLY DRILLDOWN ====================
+              if (isCampExpanded) {
+                const campCountries = state.rawFbCountries.filter(x => x.date === selectedDate && String(x.cid) === String(camp.cid));
+                const hourlyRow = state.rawHourly.find(x => x.date === selectedDate && String(x.cid) === String(camp.cid));
+
+                let hourlyHtml = '';
+                if (hourlyRow && hourlyRow.hours) {
+                  hourlyHtml = `
+                    <div class="hourly-strip">
+                      <strong style="color:#334155;">⏱️ Lịch sử ROAS theo giờ:</strong>
+                      <span class="hourly-chip">Hiện tại: <b>${(camp.roas * 100).toFixed(1)}%</b></span>
+                      ${hourlyRow.hours.map((h, i) => `<span class="hourly-chip">Hour-${i+1}: <b>${(Number(h)*100).toFixed(1)}%</b></span>`).join('')}
+                    </div>
+                  `;
+                }
+
+                if (hourlyHtml) {
+                  htmlRows.push(`
+                    <tr class="row-country">
+                      <td colspan="11" class="drilldown-box">${hourlyHtml}</td>
+                    </tr>
+                  `);
+                }
+
+                if (campCountries.length > 0) {
+                  campCountries.slice(0, 15).forEach(cc => {
+                    const cSpend = Number(cc.spend) || 0;
+                    const cInst = Number(cc.installs) || 0;
+                    const cRoas = Number(cc.roasD0) || 0;
+                    const cRoasD1 = Number(cc.roasD1) || 0;
+                    const cRev = cSpend * cRoas;
+                    const cCpi = cInst > 0 ? (cSpend / cInst) : 0;
+                    const cLtv = Number(cc.ltvD0) || 0;
+
+                    htmlRows.push(`
+                      <tr class="row-country">
+                        <td>
+                          <div class="tree-cell indent-3">
+                            <span>🌍 ${escapeHtml(cc.country)}</span>
+                          </div>
+                        </td>
+                        <td class="col-toggle"></td>
+                        <td class="col-budget"></td>
+                        <td>${fmtCurrency(cSpend, 2)}</td>
+                        <td>${fmtCurrency(cRev, 2)}</td>
+                        <td>${fmtRoasPill(cRoas)}</td>
+                        <td>${fmtDelta(cRoas, cRoasD1, false, 4)}</td>
+                        <td>${cInst.toLocaleString('en-US')}</td>
+                        <td>${cInst > 0 ? fmtCurrency(cCpi, 3) : '-'}</td>
+                        <td><span class="delta-badge neutral">-</span></td>
+                        <td>${fmtCurrency(cLtv, 2)}</td>
+                      </tr>
+                    `);
+                  });
+                } else if (!hourlyHtml) {
+                  htmlRows.push(`
+                    <tr class="row-country">
+                      <td colspan="11" style="text-align:left;padding-left:66px;color:#64748b;">
+                        ℹ️ Tài khoản: <b>${escapeHtml(camp.accountName)}</b> | Campaign ID: <code>${escapeHtml(camp.cid)}</code>
+                      </td>
+                    </tr>
+                  `);
+                }
+              }
+            }
+          }
+        }
+
+        // ==================== ROW LEVEL 2: GOOGLE NETWORK ====================
+        if (filteredGgCamps.length > 0) {
+          const gg = app.networks.Google;
+          const netKey = `${app.sp}__Google`;
+          const isNetExpanded = state.expandedNetworks.has(netKey);
+
+          htmlRows.push(`
+            <tr class="row-network" onclick="toggleNetworkRow('${escapeHtml(netKey)}')" style="cursor:pointer;">
+              <td>
+                <div class="tree-cell indent-1">
+                  <button class="chevron-btn ${isNetExpanded ? 'expanded' : ''}" type="button">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  </button>
+                  <span class="network-title">Google Ads</span>
+                  <span style="font-size:11.5px;color:#9ca3af;">(${filteredGgCamps.length})</span>
+                </div>
+              </td>
+              <td class="col-toggle"></td>
+              <td class="col-budget"></td>
+              <td>${fmtCurrency(gg.spend, 2)}</td>
+              <td>${fmtCurrency(gg.rev, 2)}</td>
+              <td>${fmtRoasPill(gg.spend > 0 ? gg.rev / gg.spend : 0)}</td>
+              <td><span class="delta-badge neutral">-</span></td>
+              <td>${gg.inst.toLocaleString('en-US')}</td>
+              <td>${gg.inst > 0 ? fmtCurrency(gg.spend / gg.inst, 3) : '-'}</td>
+              <td><span class="delta-badge neutral">-</span></td>
+              <td>${gg.inst > 0 ? fmtCurrency(gg.rev / gg.inst, 2) : '$0.00'}</td>
+            </tr>
+          `);
+
+          if (isNetExpanded) {
+            for (const gc of filteredGgCamps) {
+              htmlRows.push(`
+                <tr class="row-campaign">
+                  <td>
+                    <div class="tree-cell indent-2">
+                      <span style="width:20px;"></span>
+                      <span class="camp-title">${escapeHtml(gc.name)}</span>
+                    </div>
+                  </td>
+                  <td class="col-toggle"><span style="font-size:11px;color:#9ca3af;">Google</span></td>
+                  <td class="col-budget"><span style="font-size:11px;color:#9ca3af;">-</span></td>
+                  <td>${fmtCurrency(gc.spend, 2)}</td>
+                  <td>${fmtCurrency(gc.rev, 2)}</td>
+                  <td>${fmtRoasPill(gc.roas)}</td>
+                  <td>${fmtDelta(gc.roas, gc.roasD1, false, 4)}</td>
+                  <td>${gc.installs.toLocaleString('en-US')}</td>
+                  <td>${gc.installs > 0 ? fmtCurrency(gc.cpi, 3) : '-'}</td>
+                  <td><span class="delta-badge neutral">-</span></td>
+                  <td>${gc.installs > 0 ? fmtCurrency(gc.ltv, 2) : '$0.00'}</td>
+                </tr>
+              `);
+            }
+          }
+        }
+      }
+
+      const tbody = document.getElementById('treeTableBody');
+      if (htmlRows.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="11" style="text-align:center;padding:48px;color:#64748b;">
+              Không có chiến dịch nào khớp với bộ lọc hoặc quyền truy cập của email <b>${escapeHtml(state.userEmail)}</b>.
+            </td>
+          </tr>
+        `;
+      } else {
+        tbody.innerHTML = htmlRows.join('');
+      }
+
+      // Update KPI Bar
+      const avgRoas = grandSpend > 0 ? (grandRev / grandSpend) * 100 : 0;
+      const avgCpi = grandInst > 0 ? (grandSpend / grandInst) : 0;
+      document.getElementById('kpiApps').textContent = totalAppsShown;
+      document.getElementById('kpiCamps').textContent = totalCampsShown;
+      document.getElementById('kpiActiveCamps').textContent = `${totalActiveCamps} ON`;
+      document.getElementById('kpiSpend').textContent = fmtCurrency(grandSpend, 2);
+      document.getElementById('kpiRev').textContent = fmtCurrency(grandRev, 2);
+      document.getElementById('kpiRoas').textContent = `${avgRoas.toFixed(1)}%`;
+      document.getElementById('kpiInstalls').textContent = grandInst.toLocaleString('en-US');
+      document.getElementById('kpiCpi').textContent = fmtCurrency(avgCpi, 3);
+    }
+
+    // ==================== TREE EXPAND / COLLAPSE HANDLERS ====================
+    function toggleAppRow(sp) {
+      if (state.expandedApps.has(sp)) {
+        state.expandedApps.delete(sp);
+      } else {
+        state.expandedApps.add(sp);
+        state.expandedNetworks.add(`${sp}__Facebook`);
+      }
+      renderTreeTable();
+    }
+
+    function toggleNetworkRow(netKey) {
+      if (state.expandedNetworks.has(netKey)) {
+        state.expandedNetworks.delete(netKey);
+      } else {
+        state.expandedNetworks.add(netKey);
+      }
+      renderTreeTable();
+    }
+
+    function toggleCampaignDrilldown(cid) {
+      if (state.expandedCampaigns.has(cid)) {
+        state.expandedCampaigns.delete(cid);
+      } else {
+        state.expandedCampaigns.add(cid);
+      }
+      renderTreeTable();
+    }
+
+    function toggleExpandAll(checked) {
+      state.expandedApps.clear();
+      state.expandedNetworks.clear();
+      if (checked) {
+        state.rawFbCampaigns.forEach(c => {
+          if (c.sp) {
+            state.expandedApps.add(c.sp);
+            state.expandedNetworks.add(`${c.sp}__Facebook`);
+          }
+        });
+      }
+      renderTreeTable();
+    }
+
+    function setSort(col) {
+      if (state.sortBy === col) {
+        state.sortDesc = !state.sortDesc;
+      } else {
+        state.sortBy = col;
+        state.sortDesc = true;
+      }
+      renderTreeTable();
+    }
+
+    // ==================== LIVE ACTIONS: TOGGLE CAMPAIGN ON/OFF ====================
+    async function onToggleCampaign(cid, sp, bm) {
+      const campObj = state.rawFbCampaigns.find(c => String(c.cid) === String(cid));
+      if (!campObj) return;
+
+      const currentlyOn = String(campObj.status).toUpperCase() === 'ACTIVE';
+      const targetStatus = currentlyOn ? 'PAUSED' : 'ACTIVE';
+
+      const trackEl = document.getElementById(`switch-track-${cid}`);
+      const lblEl = document.getElementById(`switch-lbl-${cid}`);
+      const wrapEl = document.getElementById(`toggle-wrap-${cid}`);
+
+      // Optimistic UI update
+      if (trackEl) trackEl.classList.toggle('on', targetStatus === 'ACTIVE');
+      if (lblEl) {
+        lblEl.classList.toggle('on', targetStatus === 'ACTIVE');
+        lblEl.textContent = targetStatus === 'ACTIVE' ? 'on' : 'off';
+      }
+      if (wrapEl) wrapEl.classList.add('disabled');
+
+      try {
+        const res = await callApi({
+          action: 'toggle_campaign',
+          email: state.userEmail,
+          campaign_id: cid,
+          campaign_name: campObj.name,
+          app_code: sp,
+          new_status: targetStatus,
+          bm: bm || campObj.bm || '',
+          custom_token: state.customFbToken
+        });
+
+        if (res && res.status === 'success') {
+          state.rawFbCampaigns.forEach(c => {
+            if (String(c.cid) === String(cid)) c.status = targetStatus;
+          });
+          showToast(
+            `${targetStatus === 'ACTIVE' ? '🟢 Đã BẬT (ON)' : '🛑 Đã TẮT (PAUSED)'} chiến dịch: ${campObj.name}`,
+            'success'
+          );
+          if (res.logEntry) state.actionLogs.unshift(res.logEntry);
+        } else {
+          throw new Error((res && res.message) || 'Facebook API từ chối yêu cầu');
+        }
+      } catch (err) {
+        // Revert UI on error
+        if (trackEl) trackEl.classList.toggle('on', currentlyOn);
+        if (lblEl) {
+          lblEl.classList.toggle('on', currentlyOn);
+          lblEl.textContent = currentlyOn ? 'on' : 'off';
+        }
+        showToast(`❌ Không thể đổi trạng thái: ${err.message}`, 'error');
+      } finally {
+        if (wrapEl) wrapEl.classList.remove('disabled');
+      }
+    }
+
+    // ==================== LIVE ACTIONS: STEP / EDIT CAMPAIGN BUDGET ====================
+    function stepCampaignBudget(cid, direction) {
+      const inputEl = document.getElementById(`budget-input-${cid}`);
+      if (!inputEl) return;
+      const step = Number(document.getElementById('budgetStepSelect').value) || 5;
+      const currentVal = Number(inputEl.value) || 0;
+      const nextVal = Math.max(1, Math.min(5000, currentVal + direction * step));
+      inputEl.value = nextVal;
+
+      // Debounce 550ms so rapid clicks on + / - send a single API request
+      if (state.budgetTimers[cid]) clearTimeout(state.budgetTimers[cid]);
+      const boxEl = document.getElementById(`budget-box-${cid}`);
+      if (boxEl) boxEl.classList.add('saving');
+
+      state.budgetTimers[cid] = setTimeout(() => {
+        commitCampaignBudget(cid, nextVal);
+      }, 550);
+    }
+
+    function onDirectBudgetChange(cid) {
+      const inputEl = document.getElementById(`budget-input-${cid}`);
+      if (!inputEl) return;
+      const nextVal = Math.max(1, Math.min(5000, Math.round(Number(inputEl.value) || 1)));
+      inputEl.value = nextVal;
+      if (state.budgetTimers[cid]) clearTimeout(state.budgetTimers[cid]);
+      commitCampaignBudget(cid, nextVal);
+    }
+
+    async function commitCampaignBudget(cid, newBudgetUsd) {
+      const campObj = state.rawFbCampaigns.find(c => String(c.cid) === String(cid));
+      if (!campObj) return;
+      const oldBudget = Number(campObj.budget) || 0;
+      if (Math.round(oldBudget) === Math.round(newBudgetUsd)) {
+        const boxEl = document.getElementById(`budget-box-${cid}`);
+        if (boxEl) boxEl.classList.remove('saving');
+        return;
+      }
+
+      const boxEl = document.getElementById(`budget-box-${cid}`);
+      if (boxEl) boxEl.classList.add('saving');
+
+      try {
+        const res = await callApi({
+          action: 'update_budget',
+          email: state.userEmail,
+          campaign_id: cid,
+          campaign_name: campObj.name,
+          app_code: campObj.sp,
+          old_budget: oldBudget,
+          new_budget: newBudgetUsd,
+          bm: campObj.bm || '',
+          custom_token: state.customFbToken
+        });
+
+        if (res && res.status === 'success') {
+          state.rawFbCampaigns.forEach(c => {
+            if (String(c.cid) === String(cid)) c.budget = newBudgetUsd;
+          });
+          if (boxEl) {
+            boxEl.classList.remove('saving');
+            boxEl.classList.add('saved');
+            setTimeout(() => boxEl.classList.remove('saved'), 1500);
+          }
+          showToast(`💰 Đã cập nhật Budget: $${oldBudget} ➔ $${newBudgetUsd} (${campObj.name})`, 'success');
+          if (res.logEntry) state.actionLogs.unshift(res.logEntry);
+        } else {
+          throw new Error((res && res.message) || 'Không thể cập nhật ngân sách trên Facebook');
+        }
+      } catch (err) {
+        if (boxEl) boxEl.classList.remove('saving');
+        const inputEl = document.getElementById(`budget-input-${cid}`);
+        if (inputEl) inputEl.value = Math.round(oldBudget);
+        showToast(`❌ Lỗi chỉnh Budget: ${err.message}`, 'error');
+      }
+    }
+
+    // ==================== ACTION LOGS RENDERER ====================
+    function renderActionLogs() {
+      const tbody = document.getElementById('logsTableBody');
+      if (!state.actionLogs || state.actionLogs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:#64748b;">Chưa có lịch sử thao tác nào.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = state.actionLogs.map(log => `
+        <tr>
+          <td style="text-align:left;color:#475569;">${escapeHtml(log.time)}</td>
+          <td style="text-align:left;font-weight:600;">${escapeHtml(log.email)}</td>
+          <td style="text-align:center;"><span class="sp-badge">${escapeHtml(log.sp)}</span></td>
+          <td style="text-align:left;">${escapeHtml(log.campaignName)} <small style="color:#9ca3af;">(${escapeHtml(log.cid)})</small></td>
+          <td style="text-align:center;"><span class="roas-pill ${log.action.includes('PAUSE') ? 'bad' : 'good'}">${escapeHtml(log.action)}</span></td>
+          <td style="text-align:left;">${escapeHtml(log.detail)}</td>
+        </tr>
+      `).join('');
+    }
+
+    // ==================== TRIGGER GITHUB CLOUD SYNC ====================
+    async function triggerCloudSyncNow() {
+      try {
+        showToast('⚡ Đang gửi lệnh kéo số lên GitHub Actions Cloud...', 'info');
+        const res = await callApi({ action: 'trigger_cloud_sync', email: state.userEmail });
+        if (res && res.status === 'success') {
+          showToast('🚀 Đã kích hoạt kéo số Cloud! Dữ liệu sẽ tự cập nhật sau ~2 phút.', 'success');
+        } else {
+          showToast('⚠️ ' + ((res && res.message) || 'Không thể kích hoạt Cloud Sync'), 'error');
+        }
+      } catch (err) {
+        showToast('❌ Lỗi kích hoạt Cloud Sync: ' + err.message, 'error');
+      }
+    }
+
+    // ==================== SETTINGS MODAL ====================
+    function openSettingsModal() {
+      document.getElementById('cfgUserEmail').value = state.userEmail;
+      document.getElementById('cfgWebhookUrl').value = state.webhookUrl;
+      document.getElementById('cfgLookerUrl').value = state.lookerUrl;
+      document.getElementById('cfgCustomFbToken').value = state.customFbToken;
+      document.getElementById('settingsModal').classList.add('open');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.remove('open');
+    }
+
+    async function saveSettingsFromModal() {
+      state.userEmail = (document.getElementById('cfgUserEmail').value || 'ductq@unisoftstudio.com').toLowerCase().trim();
+      state.webhookUrl = (document.getElementById('cfgWebhookUrl').value || DEFAULT_WEBHOOK_URL).trim();
+      state.lookerUrl = (document.getElementById('cfgLookerUrl').value || '').trim();
+      state.customFbToken = (document.getElementById('cfgCustomFbToken').value || '').trim();
+
+      localStorage.setItem('unisoft_user_email', state.userEmail);
+      localStorage.setItem('unisoft_webhook_url', state.webhookUrl);
+      localStorage.setItem('unisoft_looker_url', state.lookerUrl);
+      localStorage.setItem('unisoft_custom_fb_token', state.customFbToken);
+
+      try {
+        await callApi({
+          action: 'save_dashboard_settings',
+          email: state.userEmail,
+          lookerEmbedUrl: state.lookerUrl
+        });
+      } catch (e) {}
+
+      closeSettingsModal();
+      loadDashboardData(true);
+    }
+
+    // ==================== REALISTIC PREVIEW FALLBACK (MATCHING SCREENSHOT) ====================
+    function loadPreviewFallbackData() {
+      const today = new Date().toISOString().slice(0, 10);
+      applyDashboardPayload({
+        status: 'success',
+        isAdmin: true,
+        allUsers: ['ductq@unisoftstudio.com', 'quynhnn@unisoftstudio.com', 'trungtt@unisoftstudio.com', 'locnd@unisoftstudio.com', 'hannk@unisoftstudio.com', 'quyennh@unisoftstudio.com'],
+        syncTime: '10:05:00',
+        cutoff: [
+          { date: today, sp: 'AB307', appName: 'Home Design', marketer: 'DucTQ', spend: 47.23, rev: 19.05, roas: 0.4033, installs: 176 },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', spend: 46.85, rev: 68.64, roas: 1.4651, installs: 174 }
+        ],
+        fbCampaigns: [
+          { date: today, sp: 'AB307', appName: 'Home Design', marketer: 'DucTQ', cid: '120210001', name: 'AB307_HomeDesign_US_ROAS_12.10|01', accountName: 'AB307_Acc01', status: 'ACTIVE', budget: 50, spend: 47.23, rev: 19.05, roas: 0.4033, roasD1: 0.4384, installs: 176, cpi: 0.268, cpiD1: 0.1707, ltvD0: 0.108, bm: 'BM_IH' },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', cid: '120210101', name: 'AB028_Photo_Global_ROAS_10.10_mix|01', accountName: 'AB028_Acc01', status: 'ACTIVE', budget: 61, spend: 23.84, rev: 48.93, roas: 2.0524, roasD1: 1.1094, installs: 44, cpi: 0.542, cpiD1: 0.3817, ltvD0: 1.112, bm: 'BM_IH' },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', cid: '120210102', name: 'AB028_Photo_Global_ROAS_14.10_photo1310|01', accountName: 'AB028_Acc01', status: 'ACTIVE', budget: 10, spend: 3.67, rev: 3.21, roas: 0.8747, roasD1: 0.4395, installs: 16, cpi: 0.229, cpiD1: 0.3053, ltvD0: 0.201, bm: 'BM_IH' },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', cid: '120210103', name: 'AB028_Photo_US_ROAS_13.10_80s|02', accountName: 'AB028_Acc01', status: 'ACTIVE', budget: 8, spend: 3.52, rev: 0.00, roas: 0.0, roasD1: 0.0, installs: 1, cpi: 3.520, cpiD1: 1.294, ltvD0: 0.0, bm: 'BM_IH' },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', cid: '120210104', name: 'AB028_Photo_Global_ROAS_14.10_haloween', accountName: 'AB028_Acc01', status: 'ACTIVE', budget: 8, spend: 2.79, rev: 3.60, roas: 1.2903, roasD1: 0.3982, installs: 8, cpi: 0.349, cpiD1: 0.831, ltvD0: 0.450, bm: 'BM_IH' },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', cid: '120210105', name: 'AB028_Photo_Global_ROAS_14.10_photo1310|02', accountName: 'AB028_Acc01', status: 'ACTIVE', budget: 8, spend: 2.19, rev: 0.34, roas: 0.157, roasD1: 0.5815, installs: 5, cpi: 0.439, cpiD1: 0.271, ltvD0: 0.068, bm: 'BM_IH' },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', cid: '120210106', name: 'AB028_Photo_Global_ROAS_10.10_mix|02', accountName: 'AB028_Acc01', status: 'ACTIVE', budget: 13, spend: 1.93, rev: 2.76, roas: 1.429, roasD1: 0.638, installs: 16, cpi: 0.121, cpiD1: 0.263, ltvD0: 0.173, bm: 'BM_IH' },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', cid: '120210107', name: 'AB028_Photo_Global_ROAS_10.10_mix|03', accountName: 'AB028_Acc01', status: 'ACTIVE', budget: 6, spend: 1.76, rev: 0.14, roas: 0.081, roasD1: 0.506, installs: 7, cpi: 0.251, cpiD1: 0.0877, ltvD0: 0.020, bm: 'BM_IH' },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', cid: '120210108', name: 'AB028_Photo_Global_ROAS_14.10_photo1310|03', accountName: 'AB028_Acc01', status: 'ACTIVE', budget: 8, spend: 1.68, rev: 1.15, roas: 0.6845, roasD1: 0.2639, installs: 42, cpi: 0.040, cpiD1: 0.0714, ltvD0: 0.027, bm: 'BM_IH' },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', cid: '120210109', name: 'AB028_Photo_US_ROAS_13.10_mix|01', accountName: 'AB028_Acc01', status: 'ACTIVE', budget: 6, spend: 1.49, rev: 0.00, roas: 0.0, roasD1: 0.0, installs: 0, cpi: 0.0, cpiD1: 0.0, ltvD0: 0.0, bm: 'BM_IH' },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', cid: '120210110', name: 'AB028_Photo_Global_ROAS_9.10_80s|02', accountName: 'AB028_Acc01', status: 'ACTIVE', budget: 6, spend: 1.22, rev: 3.02, roas: 2.478, roasD1: 0.339, installs: 9, cpi: 0.136, cpiD1: 0.128, ltvD0: 0.336, bm: 'BM_IH' },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', cid: '120210111', name: 'AB028_Photo_Global_ROAS_10.10_mix|04', accountName: 'AB028_Acc01', status: 'ACTIVE', budget: 6, spend: 1.21, rev: 2.63, roas: 2.175, roasD1: 0.686, installs: 13, cpi: 0.093, cpiD1: 0.0949, ltvD0: 0.202, bm: 'BM_IH' },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', cid: '120210112', name: 'AB028_Photo_Global_ROAS_9.10_80s|01', accountName: 'AB028_Acc01', status: 'ACTIVE', budget: 6, spend: 1.17, rev: 0.20, roas: 0.173, roasD1: 0.219, installs: 11, cpi: 0.106, cpiD1: 0.0706, ltvD0: 0.018, bm: 'BM_IH' },
+          { date: today, sp: 'AB028', appName: 'AI Photo Lab: Art Creator', marketer: 'QuynhNN', cid: '120210113', name: 'AB028_Photo_Global_ROAS_10.10_mix|05', accountName: 'AB028_Acc01', status: 'ACTIVE', budget: 6, spend: 0.37, rev: 1.64, roas: 4.422, roasD1: 0.321, installs: 2, cpi: 0.185, cpiD1: 0.0569, ltvD0: 0.820, bm: 'BM_IH' }
+        ],
+        fbCountries: [
+          { date: today, cid: '120210101', country: 'United States', spend: 14.20, installs: 21, roasD0: 2.35, roasD1: 1.20, ltvD0: 1.58 },
+          { date: today, cid: '120210101', country: 'Germany', spend: 5.40, installs: 12, roasD0: 1.82, roasD1: 1.05, ltvD0: 0.82 },
+          { date: today, cid: '120210101', country: 'Japan', spend: 4.24, installs: 11, roasD0: 1.35, roasD1: 0.98, ltvD0: 0.52 }
+        ],
+        hourly: [
+          { date: today, cid: '120210101', hours: [1.92, 1.85, 1.74, 1.60, 1.48, 1.30, 1.15] }
+        ],
+        actionLogs: []
+      });
+      state.expandedApps.add('AB028');
+      state.expandedNetworks.add('AB028__Facebook');
+      renderTreeTable();
+    }
+
+    // Boot
+    window.addEventListener('DOMContentLoaded', () => {
+      loadDashboardData(false);
+    });
+  </script>
+</body>
+</html>
